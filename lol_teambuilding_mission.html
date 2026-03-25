@@ -300,13 +300,22 @@
 </div>
 
 <script>
+  function sendHeight() {
+    const height = document.documentElement.scrollHeight;
+    window.parent.postMessage({ type: 'setHeight', height }, '*');
+  }
+
   function toggle(header) {
     const body = header.nextElementSibling;
     const icon = header.querySelector('.toggle-icon');
     const isOpen = body.classList.contains('open');
     body.classList.toggle('open', !isOpen);
     icon.classList.toggle('open', !isOpen);
+    setTimeout(sendHeight, 50);
   }
+
+  window.addEventListener('load', sendHeight);
+  window.addEventListener('resize', sendHeight);
 </script>
 </body>
 </html>
