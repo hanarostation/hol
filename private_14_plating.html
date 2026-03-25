@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>도금 열풍 공정 모니터링 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e; --panel: #252310; --card: #2e2c14; --border: #4a4620;
+      --accent: #8a8230; --accent-dim: #605c20; --accent-light: #c0b84a;
+      --text-main: #f0eccc; --text-sub: #a09c60; --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #111008; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #1e1c08, #1c1a0e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .alert-banner { background: linear-gradient(135deg, #2a0808, #1a0f0a); border: 1px solid #8a2020; border-radius: 8px; padding: 14px 16px; margin: 14px 0; text-align: center; animation: pulse-border 2s ease-in-out infinite; }
+    @keyframes pulse-border { 0%,100%{border-color:#8a2020} 50%{border-color:#e05050} }
+    .alert-title { font-size: 13px; color: #e05050; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; }
+    .alert-text { font-size: 14px; color: #f0d0c8; font-weight: 500; line-height: 1.6; }
+    /* 데이터 사전 테이블 */
+    .dict-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+    .dict-table th { background: rgba(192,184,74,0.12); color: var(--accent-light); font-weight: 500; padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+    .dict-table td { padding: 7px 10px; color: var(--text-sub); border-bottom: 1px solid rgba(74,70,32,0.4); vertical-align: top; }
+    .dict-table tr:last-child td { border-bottom: none; }
+    .dict-section { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .dict-section-title { font-size: 13px; font-weight: 500; color: var(--accent-light); margin-bottom: 8px; }
+    .data-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .data-card-title { font-size: 14px; font-weight: 500; color: var(--accent-light); }
+    .download-btn { display: inline-flex; align-items: center; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500; padding: 5px 12px; white-space: nowrap; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .download-btn:hover { background: rgba(192,184,74,0.2); border-color: var(--accent-light); }
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item { display: flex; align-items: flex-start; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+    .mission-num { width: 28px; height: 28px; flex-shrink: 0; background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent-light); }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li { font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .img-preview { width: 100%; border-radius: 6px; border: 1px solid var(--border); margin-top: 8px; }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #111008; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6; }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(192,184,74,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">도금 열풍 공정 모니터링</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">⚙️</div>
+      <div class="phase-title">공정 이상 신호를 감지하라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡의 방어구 제작소에서는 매일같이 수많은 전투 장비와 부품들이 생산되고 있습니다. 특히 방어구 외부를 보호하는 금속 코팅 작업, 즉 <span class="highlight">전기 도금 처리</span>는 제품의 품질과 내구성에 직접적인 영향을 미치기에, 매우 정밀한 공정이 요구됩니다.</p>
+      <div class="alert-banner">
+        <div class="alert-title">🚨 품질관리 본부 긴급 퀘스트 발령</div>
+        <div class="alert-text">최근 열풍 건조 공정 중 일부 제품에서 이상 징후가 발견되었습니다!<br>공정 상태를 분석하고 품질 문제를 사전에 예방해야 합니다!</div>
+      </div>
+      <p>이 퀘스트의 목적은, <span class="highlight">도금 처리 이후 물기를 제거하는 열풍 공정에서 발생하는 이상 데이터를 탐지</span>하고, 품질 문제를 사전에 예방할 수 있도록 공정 상태를 분석하는 것입니다.</p>
+      <div class="info-box">
+        📁 <strong>협곡에 전달된 두 종류의 데이터</strong><br><br>
+        · <span class="highlight">PLC(Programmable Logic Controller)</span> — 각 Lot별 오류 정보<br>
+        · <span class="highlight">Sound Sensor</span> — 공정 중 발생하는 음향 정보<br><br>
+        이상한 소음, 예외적인 진동 패턴, 온도 불균형, 반복적으로 발생하는 오류 Lot들은<br>
+        공정 내 <span class="highlight">미세한 이상 징후의 표현</span>일 수 있습니다.
+      </div>
+      <p>공정의 열풍 건조 과정은 도금된 제품에 남아 있는 수분을 완전히 제거하는 단계입니다. 이 단계에서 문제가 생기면, 수분이 금속 내부에 잔존하여 <span class="highlight">산화 또는 도금 박리</span>와 같은 심각한 문제로 이어질 수 있습니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">데이터 분석 — 6가지 임무를 완수하라!</div>
+      <div class="phase-badge">Mission Tasks</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-title">📂 데이터 파일 — 43_Sound_Data.zip</div>
+        <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/43_Sound_Data.zip')">⬇ 다운로드</button>
+      </div>
+      <div class="dict-section">
+        <div class="dict-section-title">📌 hda-sensor data 변수 설명</div>
+        <table class="dict-table">
+          <tr><th>변수 명</th><th>타입</th><th>설명</th></tr>
+          <tr><td>Index</td><td>ID</td><td>데이터 수집 시 자동 생성 값 (순서대로 생성)</td></tr>
+          <tr><td>Process</td><td>ID</td><td>Lot Number</td></tr>
+          <tr><td>Time</td><td>Datetime</td><td>측정 시 시간</td></tr>
+          <tr><td>Temp</td><td>Numeric</td><td>열풍건조 설비 내 공정 온도 측정 값</td></tr>
+          <tr><td>Current</td><td>Numeric</td><td>열풍건조 설비 내 공정 전압 측정 값</td></tr>
+        </table>
+      </div>
+      <div class="dict-section">
+        <div class="dict-section-title">📌 Error Lot list.csv 변수 설명</div>
+        <table class="dict-table">
+          <tr><th>변수 명</th><th>타입</th><th>설명</th></tr>
+          <tr><td>0</td><td>Datetime</td><td>에러가 발생한 날짜</td></tr>
+          <tr><td>1~11</td><td>ID</td><td>에러 발생 Lot Number</td></tr>
+        </table>
+      </div>
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">43_Sound_Data.zip 파일의 압축을 풀어, 폴더 내 hda-sensor 이름이 붙은 모든 데이터를 가져와, 병합하여 <strong>df_sound</strong>로 선언하시오.
+            <ul class="sub-list"><li>Row 51,084 / Column 6</li></ul>
+            <img src="images/private_image2.png" alt="df_sound 예시" class="img-preview">
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text">Error Lot list.csv파일을 불러와, 날짜와 오류 Lot 번호, Label값으로 변환하고자 한다. 아래와 같이 데이터를 변환한 뒤, Label 항목에 <strong>1값 으로만 채워진 Column을 선언하여 데이터 프레임을 df_error</strong>로 선언하시오.
+            <ul class="sub-list"><li>Row 111 / Column 3</li></ul>
+            <img src="images/private_image3.png" alt="df_error 예시" class="img-preview">
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text">처리한 두 데이터를 공통된 'Date'와 'Process'에 대해 병합하고자 한다. 'Date'항목과 'Process'항목을 이용해 <strong>'ID' Column을 생성하고, 두 데이터를 병합하여 df1</strong>으로 선언하시오.
+            <ul class="sub-list">
+              <li>데이터 병합 시, df_sound Table에 맞춰 병합</li>
+              <li>중복된 Column은 제거</li>
+              <li>Row 51,084 / Column 8</li>
+            </ul>
+            <img src="images/private_image4.png" alt="df1 예시" class="img-preview">
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">병합된 df1 데이터의 Label 항목에서 <strong>결측값을 모두 0으로 채워 넣은 뒤</strong>, 오류가 발생한 1값과 오류가 발생하지 않은 0값의 빈도수를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">'Label'(오류여부)에 대해 <strong>'Temp'(공정온도)의 분포의 차이</strong>를 확인하고자 한다. 오류에 따른 공정온도의 분포를 <strong>Box Plot</strong>으로 시각화 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text"><strong>SPC Chart</strong>를 시각화 하고자 한다. 21년 9월 7일에 발생한 데이터의 'Index' 값이 1에서 200까지의 데이터를 뽑아, 'Current'값에 대한 관리도 SPC Chart를 시각화 하시오.
+            <ul class="sub-list">
+              <li>UCL (Upper Control Limit) : Current 평균에서 표준편차 3배 큰 구간</li>
+              <li>LCL (Lower Control Limit) : Current 평균에서 표준편차 3배 작은 구간</li>
+              <li>각 데이터 Point는 선으로 연결되어 있어야 하며, X축은 Index Y축은 Current로 구성</li>
+            </ul>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">이 퀘스트는 단순한 품질 확인을 넘어,<br>협곡 전역의 생산 신뢰성을 높이는 전략적 분석 프로젝트입니다.<br>데이터를 열어, 공정의 이상 신호를 감지하고,<br>협곡의 품질을 지켜주세요.<br>"도금 열풍 공정 모니터링" 퀘스트, 지금 시작됩니다!</div>
+      </div>
+      <p>소환사님이 이 임무를 성공적으로 수행한다면, 하나로 협곡의 모든 방어구는 <span class="highlight">더 높은 완성도와 신뢰도</span>를 갖게 될 것이며, 전장에서도 그 진가를 발휘하게 될 것입니다.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>하나로 협곡 컨설팅 설문조사 데이터 분석 수행</li>
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 HTML 형식으로 저장하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 3, labels = ['퀘스트 배경', '6가지 분석 임무', '제출 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>

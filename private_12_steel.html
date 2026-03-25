@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>환경을 위한 스마트 협곡 제철소 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e; --panel: #252310; --card: #2e2c14; --border: #4a4620;
+      --accent: #8a8230; --accent-dim: #605c20; --accent-light: #c0b84a;
+      --text-main: #f0eccc; --text-sub: #a09c60; --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 36px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #111008; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #1e1c08, #1c1a0e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .data-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .data-card-title { font-size: 14px; font-weight: 500; color: var(--accent-light); }
+    .download-btn { display: inline-flex; align-items: center; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500; padding: 5px 12px; white-space: nowrap; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .download-btn:hover { background: rgba(192,184,74,0.2); border-color: var(--accent-light); }
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item { display: flex; align-items: flex-start; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+    .mission-num { width: 28px; height: 28px; flex-shrink: 0; background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent-light); }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li { font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #111008; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6; }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(192,184,74,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">환경을 위한 스마트 협곡 제철소</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🏭</div>
+      <div class="phase-title">제철소의 탄소 위기를 해결하라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡의 중심에는 협곡 경제와 방위의 근간을 이루는 <span class="highlight">거대한 제철소</span>가 자리하고 있습니다. 이곳에서 생산되는 철과 강철은 협곡의 건축, 무기 제작, 그리고 방어 시설 구축에 필수적인 자원으로 사용되며, 협곡의 발전을 이끄는 중요한 원동력이 되고 있습니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">🌿 긴급 환경 퀘스트 발령</div>
+        <div class="mission-announce-text">최근 협곡의 탄소 배출량이 급증하면서,<br>지속 가능한 발전을 위해 반드시 해결해야 할 과제가 떠올랐습니다.<br>협곡의 미래를 위해, 이 임무를 반드시 완수해야 합니다!</div>
+      </div>
+      <p>협곡의 과학자들과 기술진들은 제철소에서 배출되는 <span class="highlight">이산화탄소(CO₂)와 전력 사용량</span>을 분석하고, 에너지를 더욱 효율적으로 관리할 방법을 찾아야 합니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">⚡</div>
+      <div class="phase-title">에너지 분석 전략 — 무엇을 살펴봐야 하나?</div>
+      <div class="phase-badge">Strategy</div>
+    </div>
+    <div class="phase-body">
+      <p>첫 번째 단계는 <span class="highlight">전반기와 하반기의 지연전류무효전력량, 선행전류무효전력량, 그리고 CO₂ 배출량의 평균 차이를 계산하는 것</span>입니다. 이를 통해 계절에 따른 에너지 사용 패턴을 분석하고, 탄소 배출량의 변화를 파악할 수 있습니다.</p>
+      <p>협곡 내 자원은 한정되어 있기 때문에, 이러한 분석을 통해 <span class="highlight">보다 효과적인 전력 관리 방안</span>을 마련하는 것이 필수적입니다.</p>
+      <div class="info-box">
+        🔍 <strong>지연전류무효전력량이란?</strong><br><br>
+        전류가 전압보다 위상이 늦게 따라오는 현상으로, 보통 발전소나 공장에서<br>
+        캐패시터 및 콘덴서 뱅크와 같은 장치 없이 부하를 공급하는 량을 뜻합니다.<br>
+        해당 공장은 <span class="highlight">콘덴서를 계절에 따라 유동적으로 운영</span>하고자 합니다.
+      </div>
+      <p>시각화를 통해 패턴을 파악하고, 계절별로 어떻게 변동하는지를 분석하는 것이 매우 중요합니다. 아래 주어진 퀘스트를 이용해, 협곡 제철소의 에너지 변화를 관찰하고 <span class="highlight">에너지를 효율적으로 관리할 수 있는 방안</span>을 모색해 보세요.</p>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">데이터 분석 — 7가지 임무를 완수하라!</div>
+      <div class="phase-badge">Mission Tasks</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-title">📂 데이터 파일 — Steel_Data.csv</div>
+        <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/Steel_Data.csv')">⬇ 다운로드</button>
+      </div>
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">위의 데이터를 불러와, <strong>전반기 대비 하반기의 지연전류무효전력량 / 선행전류무효전력량 / CO2배출량의 평균의 차이</strong>를 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text">지연전류무효전력량(kWh)은 전류가 전압보다 위상이 늦게 따라오는 현상으로, 보통, 전류가 전압보다 낮은 경우, 즉 발전소나 공장에서 캐패시터 및 콘덴서 뱅크와 같은 장치 없이 부하를 공급하는 량을 뜻한다. 해당 공장은 콘덴서를 계절에 따라 유동적으로 운영하려고 하는데, <strong>시간(일)에 따라 지연전류무효전력량이 어떤 추세가 있고 어떻게 달라지는지 시각화</strong>로 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text">지연전류무효전력량 데이터의 <strong>정상성을 가설 검정</strong>을 통해 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">앞서 얻은 결과를 바탕으로, <strong>시간에 따라 지연전류무효전력량을 예측하는 시계열 모델</strong>을 만들고, 2025년 전반기 지연전류무효전력량이 어떻게 측정될지 예측하시오.
+            <ul class="sub-list">
+              <li>시계열 모형은 MAPE 값으로 계산</li>
+              <li>예측은 데이터의 마지막 시점부터, 25년 3월까지 계산</li>
+              <li>Lag는 일 또는 시간단위로 계산하며, MAPE값이 더 좋은 모형을 선택</li>
+            </ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">산업에너지소비량(kWh)는 해당 공장에서 발생하는 에너지 총 량을 환산한 것이다. 해당 데이터와 <strong>상관성이 있는 연속형 항목이 있는지 가설검정</strong>을 통해 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text">시간에 따라 <strong>산업에너지소비량(kWh)과 CO2 탄소배출량을 예측하는 다변량 시계열 모델</strong>을 구성하고자 한다. 시계열 모델을 구성하고 2025년 전반기 산업에너지소비량(kWh)과 CO2 탄소배출량을 예측한 뒤, 해당 데이터를 시각화 하시오.
+            <ul class="sub-list">
+              <li>시계열 모형은 MAPE 값으로 계산</li>
+              <li>예측은 데이터의 마지막 시점부터, 25년 3월까지 계산</li>
+              <li>Lag는 일 또는 시간단위로 계산하며, MAPE값이 더 좋은 모형을 선택</li>
+            </ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">7</div>
+          <div class="mission-text"><strong>부하량 구분에 따라 CO2 탄소배출량의 평균(또는 대표값)이 달라지는지</strong> 가설 검정을 통해 확인하시오.</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">🌿 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">이 퀘스트는 협곡의 미래를 결정짓는 중요한 임무입니다.<br>단순히 공장의 전력 사용량을 줄이는 것을 넘어,<br>협곡의 지속 가능성을 확보하고 친환경적인 산업 구조를 구축하는 것이 목표입니다.<br>탄소 배출 절감과 에너지 절약을 위한 이 중요한 도전에 참여해<br>협곡의 환경을 지켜주세요!</div>
+      </div>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>하나로 협곡 컨설팅 설문조사 데이터 분석 수행</li>
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 HTML 형식으로 저장하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 4, labels = ['퀘스트 배경', '에너지 전략', '7가지 분석 임무', '제출 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>
