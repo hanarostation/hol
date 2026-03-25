@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>팀 구성 퀘스트 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --gold: #C89B3C;
+      --gold-light: #F0E6CA;
+      --gold-dark: #7A5C1E;
+      --blue-dark: #0A1428;
+      --blue-mid: #0D1B33;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #050d1a; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--blue-dark); color: var(--gold-light);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--gold-dark); border-radius: 12px;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--gold-dark); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--gold); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--gold); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: #a08c5b; }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--gold-dark); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: #5a4a2a;
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--gold); color: var(--gold); background: rgba(200,155,60,0.1); box-shadow: 0 0 8px rgba(200,155,60,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--gold-dark); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(200,155,60,0.08) 0%, var(--blue-mid) 100%);
+      border: 1px solid var(--gold-dark); border-left: 3px solid var(--gold);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--gold); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #7aad7a; background: #0d2010;
+      border: 1px solid #2a5a2a; border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--blue-mid); border: 1px solid var(--gold-dark);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--gold-light);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--gold); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--gold-dark); margin: 16px 0; opacity: 0.5; }
+
+    .quest-box {
+      background: #050d1a; border-left: 3px solid var(--gold);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 15px; color: #b0a070; line-height: 1.8;
+    }
+
+    /* 다중 선택 */
+    .choice-hint { font-size: 13px; color: #7a6a40; margin-bottom: 10px; }
+    .choice-list { margin: 12px 0; display: flex; flex-direction: column; gap: 8px; }
+    .choice-item {
+      display: flex; align-items: center; gap: 12px;
+      background: #050d1a; border: 1px solid var(--gold-dark);
+      border-radius: 8px; padding: 12px 16px;
+      cursor: pointer; transition: all .2s; user-select: none;
+    }
+    .choice-item:hover { border-color: var(--gold); background: rgba(200,155,60,0.05); }
+    .choice-item.selected { border-color: var(--gold); background: rgba(200,155,60,0.08); }
+    .choice-item input[type="checkbox"] { display: none; }
+    .choice-box {
+      width: 20px; height: 20px; border: 1.5px solid var(--gold-dark);
+      border-radius: 4px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; font-size: 13px;
+    }
+    .choice-item.selected .choice-box { background: var(--gold); border-color: var(--gold); color: var(--blue-dark); font-weight: 700; }
+    .choice-item.selected .choice-box::after { content: '✓'; }
+    .choice-text { font-size: 15px; color: var(--gold-light); }
+
+    /* 경고 박스 */
+    .warn-box { background: #1a0a08; border: 1px solid #5a2a20; border-radius: 8px; padding: 14px 16px; margin: 12px 0; }
+    .warn-title { font-size: 13px; color: #e06050; font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .warn-item { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: #c08070; margin-bottom: 8px; line-height: 1.6; }
+    .warn-item:last-child { margin-bottom: 0; }
+    .warn-item::before { content: '✗'; color: #e05050; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+    /* 보상 카드 */
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #050d1a; border: 1px solid var(--gold-dark);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: #a07830; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--gold-light); font-weight: 500; }
+
+    /* 네비게이션 */
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(200,155,60,0.06); border: 1px solid var(--gold-dark);
+      border-radius: 6px; color: #a07830; font-size: 14px; font-weight: 500;
+      padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(200,155,60,0.12); border-color: var(--gold); color: var(--gold); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(200,155,60,0.1); border-color: var(--gold); color: var(--gold); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(200,155,60,0.2); }
+    .page-label { font-size: 13px; color: #5a4a2a; }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--gold-dark); margin-top: 16px; font-size: 13px; color: #5a4a2a; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">팀 구성 퀘스트</div>
+    <div class="sub">Hanaro of Legends · 새로운 소환사의 팀</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🏰</div>
+      <div class="phase-title">작전 기지 구축 & 팀 이름 선정</div>
+      <div class="phase-badge">필수 퀘스트</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님! 팀원들과의 만남이 이뤄졌다면, 이젠 <span class="highlight">팀을 만들어 볼 차례</span>입니다!</p>
+      <p>팀원들 간 서로 협력하는 공간도 만들어야겠죠? 새로 팀이 같이 사용할 <span class="highlight">워크스페이스</span>를 만들어보세요!</p>
+      <hr class="divider">
+      <p class="choice-hint">✦ 아래 중 하나 이상을 선택해 개설해주세요</p>
+      <div class="choice-list">
+        <label class="choice-item">
+          <input type="checkbox" onchange="toggleChoice(this)">
+          <span class="choice-box"></span>
+          <span class="choice-text">💬 카카오톡 단체 채팅방</span>
+        </label>
+        <label class="choice-item">
+          <input type="checkbox" onchange="toggleChoice(this)">
+          <span class="choice-box"></span>
+          <span class="choice-text">🔧 슬랙(Slack) 워크스페이스 & 채널</span>
+        </label>
+        <label class="choice-item">
+          <input type="checkbox" onchange="toggleChoice(this)">
+          <span class="choice-box"></span>
+          <span class="choice-text">📝 노션(Notion) 팀 페이지</span>
+        </label>
+        <label class="choice-item">
+          <input type="checkbox" onchange="toggleChoice(this)">
+          <span class="choice-box"></span>
+          <span class="choice-text">⚙️ 기타 팀이 합의한 협업 도구</span>
+        </label>
+      </div>
+      <hr class="divider">
+      <div class="quest-box">
+        앞의 과정을 모두 끝낸 뒤, <span style="color:var(--gold); font-weight:500;">"팀 이름"</span>을 선정하셔야 합니다.<br><br>
+        팀 이름은 회의를 통해 자유롭게 정해주세요!<br>
+        팀의 색깔과 방향성을 담은 이름이면 더욱 좋습니다 ✦
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">👑</div>
+      <div class="phase-title">리더 소환 — 팀장 선출</div>
+      <div class="phase-badge">필수 퀘스트</div>
+    </div>
+    <div class="phase-body">
+      <p>워크스페이스 구성 및 팀 이름을 정했다면, <span class="highlight">팀장을 선발할 차례</span>입니다.</p>
+      <p>여러분들이 지금까지 같이 지내온 모든 정보를 종합하여, <span class="highlight">가장 팀을 잘 이끌 수 있는 팀장</span>을 선출해 주세요.</p>
+      <hr class="divider">
+      <div class="warn-box">
+        <div class="warn-title">⚠️ 이렇게 정하면 안돼요!</div>
+        <div class="warn-item">안 해봤으니 네가 해라</div>
+        <div class="warn-item">비슷비슷하니 대충 투표로 하자</div>
+        <div class="warn-item">나이가 네가 제일 많으니 네가 해라</div>
+      </div>
+      <div class="quest-box">
+        💡 팀장은 지금까지 나눈 대화와 자기소개를 바탕으로,<br>
+        팀원 모두가 <strong>납득할 수 있는 방식</strong>으로 선출해주세요.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <p>팀장까지 선발이 되면, <span class="highlight">팀장</span>이 지금까지 했던 활동을 정리해 슬랙 DM으로 보내주시면 됩니다!</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <div class="reward-value">팀 빌딩 수행 완료 · GM에게 DM으로 팀 이름 송부</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🎯</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 대상</div>
+          <div class="reward-value">자신이 소속된 팀</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">1,000 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  function toggleChoice(input) {
+    input.closest('.choice-item').classList.toggle('selected', input.checked);
+  }
+
+  const total = 3;
+  let current = 0;
+  const labels = ['워크스페이스 & 팀 이름', '팀장 선출', '제출 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '완료! ✦' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>
