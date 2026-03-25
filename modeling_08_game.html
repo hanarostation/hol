@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모바일 퍼즐 게임 유저 이탈 분류 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1a0f0a;
+      --panel: #231510;
+      --card: #2e1a12;
+      --border: #5a2e1a;
+      --accent: #c0451a;
+      --accent-dim: #8a3012;
+      --accent-light: #e86030;
+      --text-main: #f0d8c8;
+      --text-sub: #b08070;
+      --text-muted: #6a4030;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #120a06; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--bg); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(200,70,30,0.1); box-shadow: 0 0 8px rgba(200,70,30,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(200,70,30,0.1) 0%, var(--panel) 100%);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-light);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #e89060; background: rgba(200,70,30,0.1);
+      border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--panel); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+
+    .info-box {
+      background: #120a06; border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.8;
+    }
+
+    /* 게임 요소 카드 */
+    .game-mechanic-row { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+    .game-mechanic {
+      flex: 1; min-width: 130px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 12px; text-align: center;
+    }
+    .game-mechanic-icon { font-size: 26px; margin-bottom: 6px; }
+    .game-mechanic-name { font-size: 14px; font-weight: 500; color: var(--accent-light); margin-bottom: 4px; }
+    .game-mechanic-desc { font-size: 12px; color: var(--text-sub); line-height: 1.5; }
+
+    /* 스탯 리스트 */
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .stat-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .stat-icon { font-size: 18px; flex-shrink: 0; }
+    .stat-info { flex: 1; }
+    .stat-name { font-size: 13px; font-weight: 500; color: var(--accent-light); margin-bottom: 2px; }
+    .stat-desc { font-size: 12px; color: var(--text-sub); }
+
+    .data-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+    }
+    .data-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    }
+    .data-card-title { font-size: 15px; font-weight: 500; color: var(--accent-light); }
+    .download-btn {
+      display: inline-flex; align-items: center;
+      background: rgba(200,70,30,0.1); border: 1px solid var(--accent-dim);
+      border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500;
+      padding: 5px 12px; white-space: nowrap; cursor: pointer;
+      transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .download-btn:hover { background: rgba(200,70,30,0.2); border-color: var(--accent-light); }
+
+    .target-badge {
+      display: inline-block; background: rgba(200,70,30,0.15);
+      border: 1px solid var(--accent); border-radius: 6px;
+      padding: 8px 12px; margin-top: 6px;
+      font-size: 14px; color: var(--accent-light);
+    }
+
+    .warn-box { background: #1a0808; border: 1px solid #5a2020; border-radius: 8px; padding: 14px 16px; margin: 12px 0; }
+    .warn-title { font-size: 13px; color: #e06050; font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .warn-item { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: #c08070; margin-bottom: 8px; line-height: 1.6; }
+    .warn-item:last-child { margin-bottom: 0; }
+    .warn-item::before { content: '⚠'; color: #e05050; flex-shrink: 0; }
+
+    /* 게임 스타일 미션 카드 */
+    .mission-announce {
+      background: linear-gradient(135deg, #2a0f06, #1a0f0a);
+      border: 1px solid var(--accent);
+      border-radius: 8px; padding: 16px;
+      margin: 14px 0; text-align: center;
+    }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 16px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #120a06; border: 1px solid var(--border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(200,70,30,0.06); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500;
+      padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(200,70,30,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(200,70,30,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(200,70,30,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">모바일 퍼즐 게임 유저 이탈 분류</div>
+    <div class="sub">Hanaro of Legends · 모델링 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🎮</div>
+      <div class="phase-title">퀘스트 브리핑 — 유저를 되찾아라!</div>
+      <div class="phase-badge">Mission 08</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">⚡ 긴급 퀘스트 발령</div>
+        <div class="mission-announce-text">협곡의 퍼즐 게임에서 유저들이 사라지고 있다!<br>소환사여, 데이터로 이탈의 원인을 밝혀내고<br>그들을 다시 게임으로 불러들여라!</div>
+      </div>
+      <p>협곡의 게임 마스터들은 퍼즐 게임의 유저 데이터를 면밀히 분석하여,<br><span class="highlight">이탈의 원인을 찾아내고</span> 더욱 매력적인 게임 경험을 제공하고자 합니다.</p>
+      <hr class="divider">
+      <p style="font-size:14px; color:var(--text-sub); margin-bottom:10px;">🎯 게임 핵심 메커니즘</p>
+      <div class="game-mechanic-row">
+        <div class="game-mechanic">
+          <div class="game-mechanic-icon">⏱️</div>
+          <div class="game-mechanic-name">제한 시간</div>
+          <div class="game-mechanic-desc">시간 내 특정 패턴을 맞추는 방식으로 진행</div>
+        </div>
+        <div class="game-mechanic">
+          <div class="game-mechanic-icon">🔥</div>
+          <div class="game-mechanic-name">콤보 시스템</div>
+          <div class="game-mechanic-desc">패턴 연속 성공 시 콤보 발동, 더 많은 점수 획득</div>
+        </div>
+        <div class="game-mechanic">
+          <div class="game-mechanic-icon">🪙</div>
+          <div class="game-mechanic-name">코인</div>
+          <div class="game-mechanic-desc">플레이로 획득, 아이템 구매 등 다양하게 활용</div>
+        </div>
+        <div class="game-mechanic">
+          <div class="game-mechanic-icon">🧪</div>
+          <div class="game-mechanic-name">물약</div>
+          <div class="game-mechanic-desc">이벤트·출석·결제로 획득, 퍼즐 해결의 핵심 자원</div>
+        </div>
+      </div>
+      <div class="info-box">
+        📌 <strong>이탈 기준</strong><br><br>
+        이탈 여부는 <span class="highlight">최근 3개월 동안의 접속 여부</span>를 기준으로 계산됩니다.<br>
+        이 데이터를 바탕으로 유저 이탈 분류 모델을 구성하는 것이 이번 미션의 목표입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📊</div>
+      <div class="phase-title">유저 스탯 데이터 — 단서를 수집하라!</div>
+      <div class="phase-badge">Data</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">📂 학습 데이터 — Game_Train.csv</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/Game_Train.csv')">⬇ 다운로드</button>
+        </div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:10px;">유저 스탯 — 설명 변수</p>
+        <div class="stat-grid">
+          <div class="stat-item"><div class="stat-icon">🎮</div><div class="stat-info"><div class="stat-name">게임 횟수</div><div class="stat-desc">스테이지 시도 횟수</div></div></div>
+          <div class="stat-item"><div class="stat-icon">🏆</div><div class="stat-info"><div class="stat-name">승리 횟수</div><div class="stat-desc">스테이지 클리어 수</div></div></div>
+          <div class="stat-item"><div class="stat-icon">🎒</div><div class="stat-info"><div class="stat-name">아이템 사용수</div><div class="stat-desc">전체 스테이지 아이템 사용</div></div></div>
+          <div class="stat-item"><div class="stat-icon">🔥</div><div class="stat-info"><div class="stat-name">평균 콤보수</div><div class="stat-desc">전체 스테이지 평균 콤보</div></div></div>
+          <div class="stat-item"><div class="stat-icon">🗺️</div><div class="stat-info"><div class="stat-name">최대 스테이지</div><div class="stat-desc">유저가 도달한 최대 스테이지</div></div></div>
+          <div class="stat-item"><div class="stat-icon">🪙</div><div class="stat-info"><div class="stat-name">획득 코인</div><div class="stat-desc">전체 획득 코인</div></div></div>
+          <div class="stat-item"><div class="stat-icon">💸</div><div class="stat-info"><div class="stat-name">사용 코인</div><div class="stat-desc">전체 사용 코인</div></div></div>
+          <div class="stat-item"><div class="stat-icon">🧪</div><div class="stat-info"><div class="stat-name">획득 물약</div><div class="stat-desc">전체 획득 물약</div></div></div>
+          <div class="stat-item"><div class="stat-icon">⚗️</div><div class="stat-info"><div class="stat-name">사용 물약</div><div class="stat-desc">전체 사용 물약</div></div></div>
+          <div class="stat-item"><div class="stat-icon">⚡</div><div class="stat-info"><div class="stat-name">사용 스킬수</div><div class="stat-desc">플레이 중 사용한 스킬 수</div></div></div>
+        </div>
+        <p style="font-size:13px; color:var(--text-muted); margin: 12px 0 6px;">목표 변수</p>
+        <div class="target-badge">🎯 이탈여부 — 1 (3개월 내 미접속) / 0 (3개월 내 접속)</div>
+      </div>
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">📂 검증 데이터 — Game_Test.csv</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/Game_Test.csv')">⬇ 다운로드</button>
+        </div>
+        <p style="font-size:14px; color:var(--text-sub); line-height:1.7;">모델 성능 평가에 사용되는 검증 데이터입니다. 학습에 절대 사용하지 마세요!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">⚠️</div>
+      <div class="phase-title">모험가의 규칙 — 반드시 지켜라!</div>
+      <div class="phase-badge">Notice</div>
+    </div>
+    <div class="phase-body">
+      <p>위에 설명 변수에 제시된 데이터는 <span class="highlight">반드시 모델에 포함</span>되어야 하는 데이터입니다.</p>
+      <p>전처리가 필요하다면, <span class="highlight">파이프라인이나 별도의 전처리 함수</span>를 구성해 처리해야겠죠?</p>
+      <hr class="divider">
+      <div class="warn-box">
+        <div class="warn-title">🚫 이 규칙을 어기면 보상 없음!</div>
+        <div class="warn-item">학습 데이터에서 성능이 100%가 나오는 <strong>과적합</strong>이 발생하면 점수를 얻을 수 없습니다.</div>
+        <div class="warn-item">그랜드 마스터가 스크립트를 실행했을 때 <strong>작동이 되지 않는다면</strong> 점수를 얻을 수 없습니다.</div>
+        <div class="warn-item"><strong>GPT, Claude 등 생성형 AI 사용은 금지!</strong> 소환사 본인의 실력으로만 퀘스트를 클리어하세요.</div>
+      </div>
+      <div class="info-box">
+        📎 모델링이 완료되면, 해당 모델에 대한 <span class="highlight">도식화를 PPT로 작성</span>해 보내주세요.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">퀘스트 클리어 조건 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">🎮 퀘스트의 궁극적 목표</div>
+        <div class="mission-announce-text">유저 이탈을 최소화하라!<br>데이터 속으로 뛰어들어 유저의 마음을 읽고,<br>그들을 다시 게임으로 불러들일 전략을 구상하세요.</div>
+      </div>
+      <p>협곡의 퍼즐 게임은 단순히 즐기는 게임이 아니라,<br>유저들에게 <span class="highlight">성취감과 재미를 제공하는 중요한 활동</span>입니다.</p>
+      <p><span class="highlight">이제, 퀘스트를 시작할 시간입니다!</span><br>협곡의 게임 환경이 당신의 손길을 기다리고 있습니다.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>모델은 <strong>Model_Mission8.sav</strong> 파일 (또는 Model_Mission8.h5) 로 저장</li>
+            <li>Test Set에 생성된 모델이 <strong>오류 없이 작동</strong></li>
+            <li>모델 파일과 Train/Test Set 성능 지표를 <strong>.ipynb 파일로 제출</strong></li>
+            <li>모델 도식화 <strong>PPT로 작성</strong>하여 송부</li>
+            <li>과적합 발생 / 스크립트 미작동 시 <strong>점수 제공 불가</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">500 포인트</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-info">
+          <div class="reward-label">추가 보상</div>
+          <ul class="condition-list">
+            <li>분류 모델의 경우, Test Set의 <strong>F1 Score</strong>가 추가 점수로 반영</li>
+            <li>회귀 모델의 경우, Test Set의 <strong>R²</strong>가 추가 점수로 반영</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 4;
+  let current = 0;
+  const labels = ['퀘스트 브리핑', '유저 스탯 데이터', '모험가의 규칙', '클리어 조건 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '퀘스트 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>

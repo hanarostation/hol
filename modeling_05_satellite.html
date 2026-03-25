@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>하나로 협곡 전략 위성 배치 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1a0f0a;
+      --panel: #231510;
+      --card: #2e1a12;
+      --border: #5a2e1a;
+      --accent: #c0451a;
+      --accent-dim: #8a3012;
+      --accent-light: #e86030;
+      --text-main: #f0d8c8;
+      --text-sub: #b08070;
+      --text-muted: #6a4030;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #120a06; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--bg); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(200,70,30,0.1); box-shadow: 0 0 8px rgba(200,70,30,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 36px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(200,70,30,0.1) 0%, var(--panel) 100%);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-light);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #e89060; background: rgba(200,70,30,0.1);
+      border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--panel); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+
+    .info-box {
+      background: #120a06; border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.8;
+    }
+
+    .label-row {
+      display: flex; gap: 10px; margin: 12px 0; flex-wrap: wrap;
+    }
+    .label-card {
+      flex: 1; min-width: 140px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px;
+      text-align: center;
+    }
+    .label-icon { font-size: 28px; margin-bottom: 8px; }
+    .label-name { font-size: 15px; font-weight: 500; color: var(--accent-light); margin-bottom: 4px; }
+    .label-desc { font-size: 12px; color: var(--text-sub); line-height: 1.5; }
+
+    .data-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+    }
+    .data-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    }
+    .data-card-title { font-size: 15px; font-weight: 500; color: var(--accent-light); }
+    .download-btn {
+      display: inline-flex; align-items: center;
+      background: rgba(200,70,30,0.1); border: 1px solid var(--accent-dim);
+      border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500;
+      padding: 5px 12px; white-space: nowrap; cursor: pointer;
+      transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .download-btn:hover { background: rgba(200,70,30,0.2); border-color: var(--accent-light); }
+
+    .target-badge {
+      display: inline-block; background: rgba(200,70,30,0.15);
+      border: 1px solid var(--accent); border-radius: 6px;
+      padding: 8px 12px; margin-top: 6px;
+      font-size: 14px; color: var(--accent-light);
+    }
+
+    .warn-box { background: #1a0808; border: 1px solid #5a2020; border-radius: 8px; padding: 14px 16px; margin: 12px 0; }
+    .warn-title { font-size: 13px; color: #e06050; font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .warn-item { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: #c08070; margin-bottom: 8px; line-height: 1.6; }
+    .warn-item:last-child { margin-bottom: 0; }
+    .warn-item::before { content: '⚠'; color: #e05050; flex-shrink: 0; }
+
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #120a06; border: 1px solid var(--border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(200,70,30,0.06); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500;
+      padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(200,70,30,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(200,70,30,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(200,70,30,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">하나로 협곡 전략 위성 배치</div>
+    <div class="sub">Hanaro of Legends · 모델링 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🛰️</div>
+      <div class="phase-title">미션 배경</div>
+      <div class="phase-badge">Mission 05</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡은 언제나 평화를 지키기 위해 노력하는 주민들로 가득한 곳입니다.<br>하지만 협곡의 안전을 위협하는 외부 요소가 점차 늘어나면서, 협곡 방위군은 새로운 전략적 기술을 도입하기로 결정했습니다.</p>
+      <p>바로 <span class="highlight">인공위성 데이터</span>를 활용해 협곡 내 선박, 차량, 도로, 건물 등 주요 객체를 탐지하고,<br>잠재적인 위협을 조기에 파악하는 시스템을 구축하는 것입니다.</p>
+      <hr class="divider">
+      <p>위성으로부터 전달된 이미지는 협곡 방위군의 <span class="highlight">새로운 눈과 귀</span>가 될 것입니다.<br>이 이미지는 협곡의 다양한 영역을 포괄하며, <span class="highlight">건물, 객체(차량·선박·구조물), 도로</span>와 같은 주요 요소들을 포함하고 있습니다.</p>
+      <p>하지만 이 데이터를 효과적으로 활용하려면 먼저 각 이미지를 정확히 분류하고,<br>이를 기반으로 <span class="highlight">학습된 모델</span>을 구성해야 합니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">🗺️</div>
+      <div class="phase-title">데이터 구조 안내</div>
+      <div class="phase-badge">Data Structure</div>
+    </div>
+    <div class="phase-body">
+      <p>전달된 데이터는 세 개의 폴더로 나뉘어 있으며,<br>각 폴더는 명확한 <span class="highlight">라벨(Label)</span>을 가지고 있습니다.</p>
+      <div class="label-row">
+        <div class="label-card">
+          <div class="label-icon">🏢</div>
+          <div class="label-name">건물</div>
+          <div class="label-desc">협곡 주민들의 생활과 관련된 공간</div>
+        </div>
+        <div class="label-card">
+          <div class="label-icon">🚢</div>
+          <div class="label-name">객체</div>
+          <div class="label-desc">차량, 선박, 구조물 등 이동 및 물류 흐름</div>
+        </div>
+        <div class="label-card">
+          <div class="label-icon">🛣️</div>
+          <div class="label-name">도로</div>
+          <div class="label-desc">협곡의 주요 연결로 및 물류 효율성</div>
+        </div>
+      </div>
+      <hr class="divider">
+      <p>데이터 분석팀은 <span class="highlight">신경망 알고리즘</span>을 활용하기로 결정했습니다.<br>약 100여 장의 이미지를 입력하며, 각 이미지의 라벨이 모델이 학습할 수 있도록 정확히 정리되었습니다.</p>
+      <p>모델은 각 이미지를 분석하며 건물, 객체, 도로의 특징을 파악하고,<br>새로운 이미지가 들어왔을 때 <span class="highlight">적절히 분류</span>할 수 있도록 훈련됩니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">📊</div>
+      <div class="phase-title">제공 데이터</div>
+      <div class="phase-badge">Data</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">📂 학습 데이터 — Train_Set.zip</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/Train_Set.zip')">⬇ 다운로드</button>
+        </div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">설명 변수</p>
+        <p style="font-size:14px; color:var(--text-sub); line-height:1.7;">건물 / 객체(차량, 선박, 구조물) / 도로에 대한 이미지 (PNG) 파일</p>
+        <p style="font-size:13px; color:var(--text-muted); margin: 12px 0 6px;">목표 변수</p>
+        <div class="target-badge">🎯 건물 / 객체(차량, 선박, 구조물) / 도로 — 폴더명을 Label로 사용</div>
+      </div>
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">📂 검증 데이터 — Test_Set.zip</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/Test_Set.zip')">⬇ 다운로드</button>
+        </div>
+        <p style="font-size:14px; color:var(--text-sub); line-height:1.7;">모델 성능 평가에 사용되는 검증 데이터입니다. 학습에 절대 사용하지 마세요!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">⚠️</div>
+      <div class="phase-title">주의사항 & 모델의 역할</div>
+      <div class="phase-badge">Notice</div>
+    </div>
+    <div class="phase-body">
+      <div class="warn-box">
+        <div class="warn-title">🚫 반드시 지켜주세요!</div>
+        <div class="warn-item"><strong>GPT, Claude 등 생성형 AI 사용은 금지</strong>합니다. 여러분들의 역량 강화를 위해 AI 사용 없이 수행해주세요.</div>
+      </div>
+      <div class="info-box">
+        📎 모델링이 완료되면, 해당 모델에 대한 <span class="highlight">도식화를 PPT로 작성</span>해 보내주세요.
+      </div>
+      <hr class="divider">
+      <p>이 모델이 성공적으로 구축되면, 협곡 방위군은 더욱 효율적으로 협곡의 안전을 유지할 수 있습니다.</p>
+      <p>선박이나 차량이 예상치 못한 방식으로 이동할 경우, 모델은 이를 <span class="highlight">즉각 탐지해 알림</span>을 보낼 것입니다.</p>
+      <p>도로의 손상이나 막힘을 실시간으로 확인하고, 건물의 상태를 모니터링하며,<br>협곡 주민들이 <span class="highlight">안심하고 생활할 수 있는 환경</span>을 제공할 수 있습니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 5 -->
+  <div class="page" id="page-4">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <p>이 시스템은 단순히 기술적인 발전을 넘어,<br>협곡 주민들의 <span class="highlight">신뢰와 안정을 위한 발판</span>이 될 것입니다.</p>
+      <p><span class="highlight">하나로 협곡의 평화는, 이제 인공지능과 데이터의 힘으로 더욱 확고히 지켜질 것입니다.</span></p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>모델은 <strong>Model_Mission5.sav</strong> 파일 (또는 Model_Mission5.h5) 로 저장</li>
+            <li>Test Set에 생성된 모델이 <strong>오류 없이 작동</strong></li>
+            <li>모델 파일과 Train/Test Set 성능 지표를 <strong>.ipynb 파일로 제출</strong></li>
+            <li>모델 도식화 <strong>PPT로 작성</strong>하여 송부</li>
+            <li>과적합 발생 / 스크립트 미작동 시 <strong>점수 제공 불가</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">500 포인트</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-info">
+          <div class="reward-label">추가 보상</div>
+          <ul class="condition-list">
+            <li>분류 모델의 경우, Test Set의 <strong>F1 Score</strong>가 추가 점수로 반영</li>
+            <li>회귀 모델의 경우, Test Set의 <strong>R²</strong>가 추가 점수로 반영</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 5</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 5;
+  let current = 0;
+  const labels = ['미션 배경', '데이터 구조', '제공 데이터', '주의사항', '제출 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '완료! ✦' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>
