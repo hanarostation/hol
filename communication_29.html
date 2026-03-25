@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>하나로의 해는 지지 않는다 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1e1a2e; --panel: #26203a; --card: #2e2840; --border: #3d3560;
+      --accent: #7060c0; --accent-dim: #503a90; --accent-light: #a090e0;
+      --text-main: #e8e0ff; --text-sub: #9080c0; --text-muted: #4a3870;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #120e1e; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(160,144,224,0.1); box-shadow: 0 0 8px rgba(160,144,224,0.25); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 36px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(160,144,224,0.1) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #c0b0f0; background: rgba(160,144,224,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #120e1e; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #201830, #1e1a2e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .night-banner { background: linear-gradient(135deg, #0a0e20, #120e1e); border: 1px solid #304080; border-radius: 10px; padding: 22px 16px; margin: 14px 0; text-align: center; }
+    .night-icon { font-size: 48px; line-height: 1; margin-bottom: 10px; }
+    .night-title { font-size: 18px; font-weight: 700; color: #7090e0; margin-bottom: 6px; letter-spacing: 1px; }
+    .night-sub { font-size: 13px; color: #5070a0; line-height: 1.7; }
+    .night-dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+    .night-dot { width: 8px; height: 8px; border-radius: 50%; background: #7090e0; opacity: 0.4; }
+    .night-dot.on { opacity: 1; }
+    .step-cards { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+    .step-card { display: flex; align-items: flex-start; gap: 12px; background: #120e1e; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; }
+    .step-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(160,144,224,0.15); border: 1px solid var(--accent-dim); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--accent-light); flex-shrink: 0; }
+    .step-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .step-text strong { color: var(--accent-light); }
+    .progress-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin: 14px 0; }
+    .progress-title { font-size: 13px; color: var(--accent-light); font-weight: 500; margin-bottom: 10px; }
+    .progress-dots { display: flex; gap: 8px; justify-content: center; }
+    .progress-dot { flex: 1; height: 36px; border-radius: 6px; background: rgba(112,144,224,0.1); border: 1px dashed #304080; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #5070a0; font-weight: 600; }
+    .cond-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+    .cond-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; margin-bottom: 10px; }
+    .cond-list { list-style: none; padding: 0; }
+    .cond-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-main); margin-bottom: 7px; line-height: 1.6; }
+    .cond-list li:last-child { margin-bottom: 0; }
+    .cond-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .cond-list li strong { color: var(--accent-light); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #120e1e; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(160,144,224,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(160,144,224,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(160,144,224,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(160,144,224,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">하나로의 해는 지지 않는다</div>
+    <div class="sub">Hanaro of Legends · 커뮤니케이션-일반</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🌙</div>
+      <div class="phase-title">밤을 밝히는 열정의 도전</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, <span class="highlight">하나로 협곡에서의 여정은 결코 멈추지 않습니다.</span> 협곡의 해는 지지 않으며, 밤이 되어서도 당신의 열정은 빛나야 합니다.</p>
+      <div class="night-banner">
+        <div class="night-icon">🌟</div>
+        <div class="night-title">하나로의 해는 지지 않는다</div>
+        <div class="night-sub">오후 6시 이후 · 5일 이상 야간 자율 학습 인증</div>
+        <div class="night-dots">
+          <div class="night-dot on"></div>
+          <div class="night-dot on"></div>
+          <div class="night-dot on"></div>
+          <div class="night-dot on"></div>
+          <div class="night-dot on"></div>
+        </div>
+      </div>
+      <p>이번 미션은 <span class="highlight">데이터 마스터로 성장하기 위해 필요한 끈기와 자기 관리</span>를 증명하는 과제입니다. 밤은 고요하지만, 그 속에서의 노력은 협곡을 더욱 강하게 만듭니다. 야간 자율 학습은 당신의 지식을 쌓고, 목표를 이루기 위한 중요한 시간입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📚</div>
+      <div class="phase-title">야간 학습 인증 미션</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>미션 달성 조건은 다음과 같습니다.</p>
+      <div class="step-cards">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>오후 6시 이후</strong>의 야간 자율 학습 모습을 인증 사진으로 촬영하십시오. 사진에는 학습 중인 모습과 함께 <strong>시간이 명확히 표시</strong>되어야 합니다.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>총 5회 이상</strong>의 인증 사진을 <strong>서로 다른 날</strong>에 걸쳐 제출해야 미션 달성으로 인정됩니다.</div>
+        </div>
+      </div>
+      <div class="progress-card">
+        <div class="progress-title">📅 5일 인증 달성 현황</div>
+        <div class="progress-dots">
+          <div class="progress-dot">1일</div>
+          <div class="progress-dot">2일</div>
+          <div class="progress-dot">3일</div>
+          <div class="progress-dot">4일</div>
+          <div class="progress-dot">5일</div>
+        </div>
+      </div>
+      <div class="info-box">
+        💡 사진 속 시간은 단지 숫자가 아니라, <span class="highlight">당신이 협곡에서 더 나은 미래를 위해 투자한 시간의 증거</span>가 될 것입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">✨</div>
+      <div class="phase-title">끈기가 협곡의 미래를 밝힌다</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>퀘스트를 완료하면 포인트를 보상으로 지급합니다. 이 퀘스트의 진정한 가치는 <span class="highlight">협곡에서 성실성과 꾸준함을 입증하는 데</span> 있습니다. 당신의 노력은 하나로 협곡의 별처럼 밤을 밝히며, 새로운 기회를 열어갈 것입니다.</p>
+      <p>이 퀘스트를 통해 당신의 <span class="highlight">끈기와 자기주도적인 모습</span>을 증명하며, 협곡에서 더 높은 목표를 향해 나아가세요.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">🌙 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">지금 이 순간부터 야간 학습 여정을 시작하세요.<br>하나로 협곡의 해는 지지 않으며,<br>당신의 열정이 협곡의 미래를 밝힐 것입니다.<br>행운을 빌겠습니다!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 달성 조건 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="cond-card">
+        <div class="cond-title">⚡ 미션 달성 조건</div>
+        <ul class="cond-list">
+          <li>야간 자율 학습을 하는 모습을 <strong>인증 사진</strong>과 함께 보내주세요.</li>
+          <li>총 <strong>5회 이상</strong> 보내야 합니다. (5일 이상 인증)</li>
+          <li><strong>오후 6시 이후</strong>, 시간이 나오도록 사진과 함께 보내주세요.</li>
+        </ul>
+      </div>
+      <div class="cond-card">
+        <div class="cond-title">👥 대상</div>
+        <ul class="cond-list">
+          <li><strong>전체 인원</strong></li>
+        </ul>
+      </div>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">기본 보상</div>
+          <div class="reward-value">100 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 4, labels = ['퀘스트 소개', '야간 학습 미션', '끈기의 가치', '달성 조건 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SF 영화관 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1e1a2e; --panel: #26203a; --card: #2e2840; --border: #3d3560;
+      --accent: #7060c0; --accent-dim: #503a90; --accent-light: #a090e0;
+      --text-main: #e8e0ff; --text-sub: #9080c0; --text-muted: #4a3870;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #120e1e; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(160,144,224,0.1); box-shadow: 0 0 8px rgba(160,144,224,0.25); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 36px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(160,144,224,0.1) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #c0b0f0; background: rgba(160,144,224,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #120e1e; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #201830, #1e1a2e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    /* SF 배너 */
+    .sf-banner { background: linear-gradient(135deg, #180c28, #120e1e); border: 1px solid #9060d0; border-radius: 10px; padding: 18px 16px; margin: 14px 0; text-align: center; animation: pulse-border 2.5s ease-in-out infinite; }
+    @keyframes pulse-border { 0%,100%{border-color:#9060d0} 50%{border-color:#c090f0} }
+    .sf-letters { font-size: 56px; font-weight: 900; color: var(--accent-light); letter-spacing: 12px; line-height: 1; margin-bottom: 8px; }
+    .sf-desc { font-size: 13px; color: #c0a0f0; margin-bottom: 10px; }
+    .sf-types { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .sf-tag { background: rgba(160,144,224,0.12); border: 1px solid var(--accent-dim); border-radius: 6px; padding: 4px 10px; font-size: 13px; font-weight: 600; color: var(--accent-light); letter-spacing: 1px; }
+    .goal-card { background: var(--card); border: 2px solid var(--accent); border-radius: 10px; padding: 14px 16px; margin: 14px 0; text-align: center; }
+    .goal-num { font-size: 42px; font-weight: 700; color: var(--accent-light); line-height: 1; margin-bottom: 4px; }
+    .goal-label { font-size: 14px; color: var(--text-sub); }
+    .step-mission-list { list-style: none; padding: 0; margin: 12px 0; }
+    .step-mission-item { display: flex; align-items: flex-start; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+    .step-mission-num { width: 28px; height: 28px; flex-shrink: 0; background: rgba(160,144,224,0.12); border: 1px solid var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent-light); }
+    .step-mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .step-mission-text strong { color: var(--accent-light); }
+    .cond-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+    .cond-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; margin-bottom: 10px; }
+    .cond-list { list-style: none; padding: 0; }
+    .cond-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-main); margin-bottom: 7px; line-height: 1.6; }
+    .cond-list li:last-child { margin-bottom: 0; }
+    .cond-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .cond-list li strong { color: var(--accent-light); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #120e1e; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .reward-sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .reward-sub-list li { font-size: 14px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .reward-sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-sub-list li span { color: var(--accent-light); font-weight: 500; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(160,144,224,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(160,144,224,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(160,144,224,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(160,144,224,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">SF 영화관</div>
+    <div class="sub">Hanaro of Legends · 커뮤니케이션-MBTI</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🌸</div>
+      <div class="phase-title">따뜻한 감각의 연합을 찾아라!</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 하나로 협곡에서 <span class="highlight">따뜻한 감각과 감정을 가진 동료 소환사들을 찾아 소통과 유대감을 강화</span>할 수 있는 특별한 퀘스트가 준비되었습니다.</p>
+      <div class="sf-banner">
+        <div class="sf-letters">SF</div>
+        <div class="sf-desc">Sensing + Feeling — 현실적 감각 × 사람 중심의 따뜻한 가치</div>
+        <div class="sf-types">
+          <div class="sf-tag">ISFJ</div>
+          <div class="sf-tag">ISFP</div>
+          <div class="sf-tag">ESFJ</div>
+          <div class="sf-tag">ESFP</div>
+        </div>
+      </div>
+      <p>이번 퀘스트의 목표는 협곡 내에서 <span class="highlight">MBTI에 'S'와 'F'를 모두 포함한 소환사들을 찾아 인증 사진을 촬영</span>하는 것입니다. 이들은 현실적인 문제 해결 능력과 사람 중심의 접근 방식을 결합한 따뜻하고 조화로운 성격을 가진 인재들입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">💬</div>
+      <div class="phase-title">SF 소환사에게 조언을 구하라!</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <div class="goal-card">
+        <div class="goal-num">3+</div>
+        <div class="goal-label">SF 유형 소환사 최소 인원</div>
+      </div>
+      <p>미션 달성 조건은 다음과 같습니다.</p>
+      <ul class="step-mission-list">
+        <li class="step-mission-item">
+          <div class="step-mission-num">1</div>
+          <div class="step-mission-text">협곡 내에서 자신을 제외한 <strong>MBTI에 'S'와 'F'를 모두 포함한 소환사들</strong>을 찾아 함께 모이십시오.</div>
+        </li>
+        <li class="step-mission-item">
+          <div class="step-mission-num">2</div>
+          <div class="step-mission-text">그들에게 <strong>따뜻하고 현실적인 조언 한마디</strong>를 부탁하세요.</div>
+        </li>
+        <li class="step-mission-item">
+          <div class="step-mission-num">3</div>
+          <div class="step-mission-text"><strong>ID 카드에 MBTI가 명시된 상태</strong>로 인증 사진을 촬영하여 제출하십시오.</div>
+        </li>
+        <li class="step-mission-item">
+          <div class="step-mission-num">4</div>
+          <div class="step-mission-text"><strong>최소 3명 이상의 SF 유형 소환사가 포함</strong>되어야 하며, 인원이 많아질수록 추가 보상이 주어집니다.</div>
+        </li>
+      </ul>
+      <div class="info-box">
+        💡 사진 속 인원 한 명당 추가로 포인트가 지급됩니다.<br>
+        더 많은 SF 유형의 소환사들을 모을수록 <span class="highlight">보상이 늘어납니다!</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🌟</div>
+      <div class="phase-title">따뜻한 에너지로 협곡을 채워라!</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>이번 퀘스트는 단순히 SF 유형의 소환사들을 모으는 것을 넘어, 그들의 강점과 따뜻한 에너지를 이해하고 <span class="highlight">협곡 내에서의 협력을 강화하는 시간</span>이 될 것입니다.</p>
+      <p>현실적이고 사람 중심의 접근을 중요하게 생각하는 그들과의 만남은 <span class="highlight">당신에게도 특별한 영감</span>을 줄 것입니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">하나로 협곡의 SF 유형 소환사들을 찾아<br>그들의 따뜻한 에너지와 조화를 경험하세요.<br>이번 퀘스트를 통해 협곡 내에서 당신의 유대감을 강화하고,<br>협력을 통해 더 큰 목표를 이루세요.<br>행운을 빕니다!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 달성 조건 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="cond-card">
+        <div class="cond-title">⚡ 미션 달성 조건</div>
+        <ul class="cond-list">
+          <li>자신을 제외한 MBTI에 <strong>"S"와 "F"가 모두 포함된 인원</strong>을 찾아 인증 사진을 찍어 보내주세요.</li>
+          <li><strong>SF를 가진 인원에게 조언</strong>을 구하세요.</li>
+          <li><strong>SF를 가진 인원을 최소 3명 이상</strong> 모으셔야 합니다.</li>
+          <li><strong>ID 카드가 사진에 함께 나와야</strong> 합니다.</li>
+        </ul>
+      </div>
+      <div class="cond-card">
+        <div class="cond-title">👥 대상</div>
+        <ul class="cond-list">
+          <li><strong>전체 인원</strong></li>
+        </ul>
+      </div>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">기본 보상</div>
+          <div class="reward-value">50 포인트</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-info">
+          <div class="reward-label">추가 보상</div>
+          <ul class="reward-sub-list">
+            <li>인원 당 <span>+5 포인트</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 4, labels = ['퀘스트 브리핑', 'SF 조언 미션', '따뜻한 에너지', '달성 조건 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>
