@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>팀 결성 퀘스트 — 하나로 협곡</title>
+  <style>
+    :root {
+      --gold: #C89B3C;
+      --gold-light: #F0E6CA;
+      --gold-dark: #7A5C1E;
+      --blue-dark: #0A1428;
+      --blue-mid: #0D1B33;
+      --blue-panel: #091020;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #050d1a;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 32px 16px;
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      background: var(--blue-dark);
+      color: var(--gold-light);
+      padding: 28px 24px;
+      border: 1.5px solid var(--gold-dark);
+      border-radius: 12px;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 1px solid var(--gold-dark);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    .rune { font-size: 28px; letter-spacing: 8px; color: var(--gold); margin-bottom: 6px; }
+    .title { font-size: 20px; font-weight: 500; color: var(--gold); letter-spacing: 1px; margin-bottom: 4px; }
+    .sub { font-size: 13px; color: #a08c5b; }
+    .phase {
+      background: var(--blue-mid);
+      border: 1px solid var(--gold-dark);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(90deg, #1a2a1a 0%, var(--blue-mid) 100%);
+      border-bottom: 1px solid var(--gold-dark);
+      padding: 12px 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .phase-header:hover { background: linear-gradient(90deg, #1e301e 0%, #0f1e0f 100%); }
+    .phase-num {
+      width: 28px; height: 28px;
+      border: 1.5px solid var(--gold);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--gold);
+      flex-shrink: 0;
+    }
+    .phase-title { font-size: 15px; font-weight: 500; color: var(--gold); flex: 1; }
+    .phase-badge {
+      font-size: 11px; color: #7aad7a;
+      background: #0d2010;
+      border: 1px solid #2a5a2a;
+      border-radius: 4px;
+      padding: 2px 7px;
+    }
+    .phase-body {
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.7;
+      color: #c8b88a;
+      display: none;
+    }
+    .phase-body.open { display: block; }
+    .quest-box {
+      background: #050d1a;
+      border-left: 3px solid var(--gold);
+      border-radius: 0 8px 8px 0;
+      padding: 12px 14px;
+      margin: 12px 0;
+      font-size: 13px;
+      color: #b0a070;
+    }
+    .item-list { list-style: none; padding: 0; margin: 8px 0; }
+    .item-list li {
+      padding: 5px 0 5px 18px;
+      position: relative;
+      font-size: 14px;
+      color: #c8b88a;
+    }
+    .item-list li::before {
+      content: "◆";
+      position: absolute; left: 0;
+      color: var(--gold);
+      font-size: 9px; top: 8px;
+    }
+    .example-box {
+      background: #0a1520;
+      border: 1px dashed #3a5a3a;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 10px 0;
+      font-size: 13px;
+      color: #90a890;
+      line-height: 1.6;
+    }
+    .example-box .label {
+      font-size: 11px; color: #5a8a5a;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .q-box {
+      background: #0d1a0d;
+      border: 1px solid #2a4a2a;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin: 8px 0;
+    }
+    .q-num { font-size: 11px; color: #5aaa5a; font-weight: 500; margin-bottom: 4px; }
+    .q-text { font-size: 14px; color: #c8d8c8; }
+    .q-hint { font-size: 12px; color: #708a70; margin-top: 4px; }
+    .reward {
+      display: flex; align-items: center; gap: 10px;
+      background: #0f1a08;
+      border: 1px solid #3a5a20;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 10px 0;
+    }
+    .reward-icon { font-size: 18px; }
+    .reward-text { font-size: 13px; color: #9ab87a; }
+    .divider { border: none; border-top: 1px solid var(--gold-dark); margin: 14px 0; opacity: 0.5; }
+    .footer {
+      text-align: center;
+      padding-top: 16px;
+      border-top: 1px solid var(--gold-dark);
+      margin-top: 8px;
+      font-size: 13px;
+      color: #7a6a40;
+    }
+    .toggle-icon { font-size: 12px; color: #7a6a40; transition: transform .2s; }
+    .toggle-icon.open { transform: rotate(180deg); }
+    .highlight { color: var(--gold); font-weight: 500; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="rune">✦ ✦ ✦</div>
+    <div class="title">[ 팀 결성 퀘스트 ] — 소환사들이여, 모여라!</div>
+    <div class="sub">하나로 협곡 특별 미션 · 난이도: ★★★☆☆ · 소요시간: 약 60분</div>
+  </div>
+
+  <!-- Phase 1 -->
+  <div class="phase">
+    <div class="phase-header" onclick="toggle(this)">
+      <div class="phase-num">1</div>
+      <div class="phase-title">소환사 신원 공개 — 자기소개</div>
+      <div class="phase-badge">필수 퀘스트</div>
+      <div class="toggle-icon">▼</div>
+    </div>
+    <div class="phase-body open">
+      <p>오늘은 앞으로 <span class="highlight">1개월간 함께 싸울 아군</span>을 처음 만나는 날입니다. 서로의 신원을 파악해야 팀 전략을 짤 수 있겠죠? 아래 항목을 포함하여 자기소개를 진행해주세요.</p>
+      <div class="quest-box">
+        <strong>📋 소환사 프로필 공개 항목</strong><br><br>
+        이름 &nbsp;/&nbsp; 전공 &nbsp;/&nbsp; 관심 분야 &nbsp;/&nbsp; 사는 지역 &nbsp;/&nbsp; MBTI &nbsp;/&nbsp; 각오 한마디
+      </div>
+      <div class="example-box">
+        <div class="label">예시 소개</div>
+        안녕하세요, 저는 홍길동입니다. 물리교육과를 전공하고 있으며, 제조 및 마케팅 분야에 큰 관심을 갖고 있습니다. 경기 남양주 다산동에 살고 있고, MBTI는 INFP입니다. 이번 과정에서는 최선보다 최고가 되고자, 팀원들과 함께 적극적으로 성장하겠습니다!
+      </div>
+      <div class="reward">
+        <div class="reward-icon">🏅</div>
+        <div class="reward-text">퀘스트 완료 시 획득: <strong>팀원 신뢰도 +10</strong> · 소환사 인식표 해금</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div class="phase">
+    <div class="phase-header" onclick="toggle(this)">
+      <div class="phase-num">2</div>
+      <div class="phase-title">아군 기지 구축 — 팀 워크스페이스 개설</div>
+      <div class="phase-badge">필수 퀘스트</div>
+      <div class="toggle-icon">▼</div>
+    </div>
+    <div class="phase-body">
+      <p>팀원들과 협력하려면 <span class="highlight">공동 작전 기지</span>가 필요합니다. 아래 중 하나 이상의 채널을 만들어 팀원 전원을 초대해주세요.</p>
+      <ul class="item-list">
+        <li>카카오톡 단체 채팅방</li>
+        <li>슬랙(Slack) 워크스페이스 &amp; 채널</li>
+        <li>노션(Notion) 팀 페이지</li>
+        <li>기타 팀이 합의한 협업 도구</li>
+      </ul>
+      <div class="reward">
+        <div class="reward-icon">🏅</div>
+        <div class="reward-text">퀘스트 완료 시 획득: <strong>팀 소통 채널 활성화</strong> · 협업 효율 +15</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div class="phase">
+    <div class="phase-header" onclick="toggle(this)">
+      <div class="phase-num">3</div>
+      <div class="phase-title">소환사 길드 명명 — 팀 이름 선정</div>
+      <div class="phase-badge">필수 퀘스트</div>
+      <div class="toggle-icon">▼</div>
+    </div>
+    <div class="phase-body">
+      <p>워크스페이스 개설까지 완료했다면, 이제 여러분 팀의 <span class="highlight">길드명(팀 이름)</span>을 정할 차례입니다. 팀원 모두가 납득할 수 있는 이름으로 자유롭게 회의하여 결정해주세요.</p>
+      <div class="quest-box">
+        팀 이름은 이번 프로젝트 기간 내내 여러분의 정체성이 됩니다.<br>
+        교육, 협력, 성장을 담은 이름도 좋고, 유쾌하고 개성 있는 이름도 환영합니다!
+      </div>
+      <div class="reward">
+        <div class="reward-icon">🏅</div>
+        <div class="reward-text">퀘스트 완료 시 획득: <strong>팀 정체성 확립</strong> · 길드 깃발 해금</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 4 -->
+  <div class="phase">
+    <div class="phase-header" onclick="toggle(this)">
+      <div class="phase-num">4</div>
+      <div class="phase-title">지피지기 — 서로를 깊이 알아가기</div>
+      <div class="phase-badge">심화 퀘스트</div>
+      <div class="toggle-icon">▼</div>
+    </div>
+    <div class="phase-body">
+      <p>팀장을 정하기 전, 먼저 서로를 더 깊이 파악하는 시간을 가져봅시다. <span class="highlight">"지피지기면 백전불태"</span> — 팀원을 잘 알아야 최강의 시너지를 낼 수 있습니다.</p>
+      <hr class="divider">
+      <div class="q-box">
+        <div class="q-num">[ 질문 1 ]</div>
+        <div class="q-text">자신을 표현할 수 있는 단어나 표현 3가지를 선택하고, 그 이유를 말해주세요.</div>
+        <div class="q-hint">예) "긍정" / "전략" / "개별화"</div>
+      </div>
+      <div class="q-box">
+        <div class="q-num">[ 질문 2 ]</div>
+        <div class="q-text">위의 세 단어를 잘 나타낼 수 있는 나만의 스토리(경험담)를 간단히 공유해주세요.</div>
+      </div>
+      <div class="q-box">
+        <div class="q-num">[ 질문 3 ]</div>
+        <div class="q-text">팀원들이 말한 단어들 중 가장 인상 깊었던 단어를 하나 고르고, 그 이유를 말해주세요.</div>
+      </div>
+      <div class="q-box">
+        <div class="q-num">[ 질문 4 ]</div>
+        <div class="q-text">팀원들의 이야기를 바탕으로, 각 팀원에게 붙여주고 싶은 닉네임(별명)을 상의하여 정해주세요.</div>
+        <div class="q-hint">닉네임은 앞으로 팀 활동 중 서로를 부르는 호칭이 될 수 있습니다.</div>
+      </div>
+      <div class="reward">
+        <div class="reward-icon">🏅</div>
+        <div class="reward-text">퀘스트 완료 시 획득: <strong>팀원 이해도 Max</strong> · 협업 시너지 버프 활성화</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 5 -->
+  <div class="phase">
+    <div class="phase-header" onclick="toggle(this)">
+      <div class="phase-num">5</div>
+      <div class="phase-title">리더 소환 — 팀장 선출 &amp; 결과 보고</div>
+      <div class="phase-badge">최종 퀘스트</div>
+      <div class="toggle-icon">▼</div>
+    </div>
+    <div class="phase-body">
+      <p>지금까지의 대화를 통해 서로를 충분히 파악했다면, 이제 <span class="highlight">팀의 리더(팀장)</span>를 선출할 시간입니다. 앞선 대화 내용을 바탕으로 자유롭게 논의하여 팀장을 정해주세요.</p>
+      <hr class="divider">
+      <p>모든 활동이 완료되면, 팀장님이 아래 양식에 맞춰 결과를 메일로 제출해주시면 됩니다.</p>
+      <div class="quest-box">
+        <strong>📧 제출 양식 (팀장 메일 발송)</strong><br><br>
+        · 팀 이름<br>
+        · 팀장 이름<br>
+        · 팀원 목록 (이름 / 전공 / 관심분야 / 지역 / MBTI / 각오)<br>
+        · 팀 워크스페이스 링크<br>
+        · 팀원별 닉네임
+      </div>
+      <div class="reward">
+        <div class="reward-icon">🏆</div>
+        <div class="reward-text">모든 퀘스트 완료: <strong>팀 결성 완료!</strong> · 하나로 협곡 교육 퀘스트 출발 준비 완료</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님, 오늘의 팀 결성이 앞으로의 여정을 결정짓습니다. 함께라면 어떤 퀘스트도 클리어할 수 있습니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  function toggle(header) {
+    const body = header.nextElementSibling;
+    const icon = header.querySelector('.toggle-icon');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    icon.classList.toggle('open', !isOpen);
+  }
+</script>
+</body>
+</html>
