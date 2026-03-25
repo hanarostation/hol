@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>그라운드 룰 퀘스트 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --gold: #C89B3C;
+      --gold-light: #F0E6CA;
+      --gold-dark: #7A5C1E;
+      --blue-dark: #0A1428;
+      --blue-mid: #0D1B33;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #050d1a;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 16px;
+    }
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      background: var(--blue-dark);
+      color: var(--gold-light);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--gold-dark);
+      border-radius: 12px;
+    }
+
+    /* 헤더 */
+    .header {
+      text-align: center;
+      border-bottom: 1px solid var(--gold-dark);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    .logo-img {
+      width: 90px; height: 90px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--gold); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--gold); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: #a08c5b; }
+
+    /* 스텝 인디케이터 */
+    .steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .step-dot {
+      width: 34px; height: 34px;
+      border: 1.5px solid var(--gold-dark);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: #5a4a2a;
+      cursor: pointer;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .step-dot.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(200,155,60,0.1);
+      box-shadow: 0 0 8px rgba(200,155,60,0.2);
+    }
+    .step-dot.done {
+      border-color: #4a6a2a;
+      color: #7aaa5a;
+      background: rgba(100,160,60,0.08);
+    }
+    .step-line {
+      width: 44px; height: 1px;
+      background: var(--gold-dark);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .step-line.done { background: #4a6a2a; }
+
+    /* 페이지 */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(90deg, rgba(200,155,60,0.08) 0%, var(--blue-mid) 100%);
+      border: 1px solid var(--gold-dark);
+      border-left: 3px solid var(--gold);
+      border-radius: 8px 8px 0 0;
+      padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--gold); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #7aad7a;
+      background: #0d2010;
+      border: 1px solid #2a5a2a;
+      border-radius: 4px;
+      padding: 2px 8px;
+      white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--blue-mid);
+      border: 1px solid var(--gold-dark);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 20px;
+      font-size: 15px;
+      line-height: 1.85;
+      color: var(--gold-light);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--gold); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--gold-dark); margin: 16px 0; opacity: 0.5; }
+
+    .quest-box {
+      background: #050d1a;
+      border-left: 3px solid var(--gold);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 16px;
+      margin: 14px 0;
+      font-size: 15px;
+      color: #b0a070;
+      line-height: 1.8;
+    }
+    .quest-box strong { color: var(--gold); }
+
+    .example-box {
+      background: #080f1e;
+      border: 1px dashed var(--gold-dark);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 12px 0;
+      font-size: 14px;
+      color: #a09060;
+      line-height: 1.8;
+    }
+    .example-box .label {
+      font-size: 12px; color: #7a6a40;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .example-box p { margin-bottom: 6px; color: #a09060; }
+    .example-box p:last-child { margin-bottom: 0; }
+    .example-box strong { color: #c8a860; }
+
+    .info-box {
+      background: #050d1a;
+      border-left: 3px solid #7a6a40;
+      border-radius: 0 8px 8px 0;
+      padding: 13px 15px;
+      margin: 12px 0;
+      font-size: 14px;
+      color: #a08c5b;
+      line-height: 1.75;
+    }
+
+    .good-bad-row {
+      display: flex;
+      gap: 12px;
+      margin: 12px 0;
+    }
+    .bad-box {
+      flex: 1;
+      background: #1a0808;
+      border: 1px solid #5a2020;
+      border-radius: 8px;
+      padding: 13px 14px;
+      font-size: 14px;
+      color: #c08080;
+      line-height: 1.7;
+    }
+    .good-box {
+      flex: 1;
+      background: #081a08;
+      border: 1px solid #2a5a20;
+      border-radius: 8px;
+      padding: 13px 14px;
+      font-size: 14px;
+      color: #80c080;
+      line-height: 1.7;
+    }
+    .box-label {
+      font-size: 12px; font-weight: 500;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .bad-box .box-label { color: #e05050; }
+    .good-box .box-label { color: #50c050; }
+    .bad-box ul, .good-box ul {
+      padding-left: 16px;
+      margin-top: 4px;
+    }
+    .bad-box li, .good-box li { margin-bottom: 4px; font-size: 13px; }
+
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #050d1a;
+      border: 1px solid var(--gold-dark);
+      border-radius: 8px;
+      padding: 13px 15px;
+      margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label {
+      font-size: 12px; color: #a07830;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 3px; font-weight: 500;
+    }
+    .reward-value { font-size: 15px; color: var(--gold-light); font-weight: 500; }
+    .download-btn {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(200,155,60,0.1);
+      border: 1px solid var(--gold-dark);
+      border-radius: 6px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 14px;
+      white-space: nowrap;
+      align-self: center;
+      transition: all .2s;
+      cursor: pointer;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .download-btn:hover { background: rgba(200,155,60,0.2); border-color: var(--gold); }
+
+    /* 네비게이션 */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+    }
+    .nav-btn {
+      background: rgba(200,155,60,0.06);
+      border: 1px solid var(--gold-dark);
+      border-radius: 6px;
+      color: #a07830;
+      font-size: 14px;
+      font-weight: 500;
+      padding: 9px 22px;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(200,155,60,0.12); border-color: var(--gold); color: var(--gold); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(200,155,60,0.1); border-color: var(--gold); color: var(--gold); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(200,155,60,0.2); }
+    .page-label { font-size: 13px; color: #5a4a2a; }
+
+    .footer {
+      text-align: center;
+      padding-top: 14px;
+      border-top: 1px solid var(--gold-dark);
+      margin-top: 16px;
+      font-size: 13px;
+      color: #5a4a2a;
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">그라운드 룰 퀘스트</div>
+    <div class="sub">Hanaro of Legends · 하나의 팀으로</div>
+  </div>
+
+  <!-- 스텝 인디케이터 -->
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1: 미래 회고 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🔮</div>
+      <div class="phase-title">Futurespective — 미래 회고</div>
+      <div class="phase-badge">발제 1</div>
+    </div>
+    <div class="phase-body">
+      <p>한 팀으로 모인 소환사들과 진행해야 할 것은 <span class="highlight">팀의 규칙을 만드는 것</span>입니다!</p>
+      <p>팀의 더 조직적인 질서와 체계를 구성하기 위한 팀 빌딩을 같이 해보도록 하겠습니다.</p>
+      <p>오늘은 기업 팀 빌딩에 많이 활용되는 <span class="highlight">Futurespective (미래 회고)</span>에 대해 같이 얘기해 보겠습니다.</p>
+      <p>아래 발제에 대해 먼저 <span class="highlight">각자 5개 이상</span>의 팀 회고 모습을 작성해 주세요.</p>
+      <hr class="divider">
+      <div class="quest-box">
+        <strong>📌 발제 1</strong><br><br>
+        만약 여러분이 단순히 한두 달 보고 말 사이가 아닌, 수십 년 같이 일해야 하는 팀의 동료라고 가정해 봅시다.<br><br>
+        지금 같이 있는 팀원들과 <strong>1년을 같이 지낸 뒤, 팀을 회고한다면</strong> 우리 팀에서는 어떤 이야기들이 나오면 좋을까요?<br><br>
+        아래 빈칸을 채워 각자 5개 이상 자신이 회고할 팀의 모습을 작성해 봅시다.
+      </div>
+      <div class="info-box">
+        💬 우리 팀은 (1년 후 우리가 회고할 때)<br>
+        <strong>———————</strong> 라는 말이 나오면 (또는 나오지 않았으면) 좋겠다
+      </div>
+      <div class="example-box">
+        <div class="label">예시</div>
+        <p>(1년 후 회고할 때) <strong>"우리끼리 금융 서비스 개발 프로젝트를 해보자"</strong>라는 말이 나왔으면 좋겠다.</p>
+        <p>(1년 후 회고할 때) <strong>"서로 말을 안 해서 소통이 어려웠어"</strong>라는 말이 나오지 않았으면 좋겠다.</p>
+        <p>(1년 후 회고할 때) <strong>"그때 팀프로젝트 1등은 너무 짜릿했어"</strong>라는 말이 나왔으면 좋겠다.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2: 생각 공유 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">💬</div>
+      <div class="phase-title">회고 공유 — 필요한 요소 찾기</div>
+      <div class="phase-badge">발제 2</div>
+    </div>
+    <div class="phase-body">
+      <p>이번엔 <span class="highlight">서로의 생각을 공유</span>하는 시간입니다.</p>
+      <p>글로만 자신의 생각을 전달하면 그 의도를 상대방은 정확하게 알아낼 수 없습니다. 그래서 자신의 생각을 꼭 팀원들과 나누어야 합니다.</p>
+      <hr class="divider">
+      <div class="quest-box">
+        <strong>📌 발제 2</strong><br><br>
+        팀원들끼리 회고를 공유한 뒤, 실제로 우리 팀이 회고의 모습대로 되려면 <strong>어떤 것들이 필요할까요?</strong><br><br>
+        해당 회고에 필요한 요소 (가치, 자세, 태도 등)를 한 명씩 말해 봅시다.
+      </div>
+      <div class="example-box">
+        <div class="label">예시</div>
+        <p><strong>"우리끼리 금융 서비스 개발 프로젝트를 해보자"</strong>라는 말이 나오려면,</p>
+        <p style="padding-left:12px; color:#8a9870;">· 서로 지속적인 스터디 모임이 필요하다</p>
+        <p style="padding-left:12px; color:#8a9870;">· 서로 공부한 내용을 공유하는 워크스페이스가 필요하다</p>
+        <p style="padding-left:12px; color:#8a9870; margin-bottom:12px;">· 하나로 디지털 강의를 집중해 들어야 한다</p>
+        <p><strong>"서로 말을 안 해서 소통이 어려웠어"</strong>라는 말이 안 나오려면,</p>
+        <p style="padding-left:12px; color:#8a9870;">· 일정 시간마다 회의를 진행해야 한다</p>
+        <p style="padding-left:12px; color:#8a9870;">· 프로젝트나 팀 활동 이외에도 같이 대화할 수 있는 시간이 필요하다</p>
+        <p style="padding-left:12px; color:#8a9870;">· 워크스페이스에 서로 메시지를 확인했다는 표시를 남겨야 한다</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3: 그라운드 룰 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">⚖️</div>
+      <div class="phase-title">그라운드 룰 제정</div>
+      <div class="phase-badge">팀 규칙 만들기</div>
+    </div>
+    <div class="phase-body">
+      <p>위에서 나온 회고 중 <span class="highlight">가장 의미 있는 회고</span>는 어떤 것이었나요?</p>
+      <p>팀별로 <span class="highlight">1~10점</span> 중 점수를 부여해 가장 점수가 높은 <span class="highlight">상위 5개의 회고</span>만 선택해 봅시다.</p>
+      <p>상위 5개의 회고에 적힌 적용 방안을 이용하여 <span class="highlight">그라운드 룰</span>을 만들어봅시다.</p>
+      <div class="info-box">
+        📌 <strong>그라운드 룰이란?</strong><br><br>
+        의사소통, 의사결정, 회의 예절 등에 대한 기본 규칙으로,<br>
+        <strong>평가 및 측정이 가능한 구체적인 수치</strong>로 세워져야 합니다.<br><br>
+        규칙이 너무 많으면 모든 룰을 지킬 수 없고,<br>
+        너무 적으면 팀의 질서와 체계가 잡히지 않습니다.
+      </div>
+      <hr class="divider">
+      <div class="good-bad-row">
+        <div class="bad-box">
+          <div class="box-label">❌ 안좋은 예시</div>
+          <p style="font-size:14px; margin-bottom:8px;">"회의 시간에 말을 이쁘게 합시다!"</p>
+          <ul>
+            <li>'이쁘게'의 기준이 없음</li>
+            <li>사람마다 기준이 다름</li>
+            <li>달성 여부를 측정할 수 없음</li>
+          </ul>
+        </div>
+        <div class="good-box">
+          <div class="box-label">✅ 좋은 예시</div>
+          <p style="font-size:14px; margin-bottom:8px;">"회의 시간에 반드시 존댓말을 사용합시다."</p>
+          <ul>
+            <li>존댓말의 기준이 명확함</li>
+            <li>누구에게나 동일한 기준</li>
+            <li>지키지 않았을 때 측정 가능</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 4: 제출 & 보상 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <p>서로 결정한 <span class="highlight">그라운드 룰</span>을 이젤 패드에 작성해 자신의 팀 벽에 게시해주세요!</p>
+      <p>그리고 아래 파일에 작성해 각 반 <span class="highlight">그랜드 마스터 (GM)</span>에게 전달해주세요!</p>
+
+      <div class="reward-card">
+        <div class="reward-icon">📁</div>
+        <div class="reward-info">
+          <div class="reward-label">제출 파일</div>
+          <div class="reward-value">디지털 하나로 000팀 그라운드룰 .docx</div>
+        </div>
+        <button onclick="window.open('https://hanarostation.github.io/hol/files/team_ground.docx')" class="download-btn">⬇ 다운로드</button>
+      </div>
+
+      <hr class="divider">
+
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <div class="reward-value">그라운드 룰 작성 및 게시 · GM에게 파일 제출</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">🎯</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 대상</div>
+          <div class="reward-value">자신이 소속된 팀</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">1,000 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 네비게이션 -->
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 4;
+  let current = 0;
+  const labels = ['미래 회고', '회고 공유', '그라운드 룰', '제출 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '완료! ✦' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>
