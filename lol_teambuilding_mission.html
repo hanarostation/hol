@@ -11,47 +11,79 @@
       --gold-dark: #7A5C1E;
       --blue-dark: #0A1428;
       --blue-mid: #0D1B33;
-      --blue-panel: #091020;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background: #050d1a;
       font-family: 'Segoe UI', sans-serif;
-      padding: 32px 16px;
-      height: auto;
-      overflow: visible;
+      padding: 24px 16px;
     }
     .wrap {
       max-width: 760px;
       margin: 0 auto;
       background: var(--blue-dark);
       color: var(--gold-light);
-      padding: 28px 24px;
+      padding: 24px 24px 20px;
       border: 1.5px solid var(--gold-dark);
       border-radius: 12px;
     }
     .header {
       text-align: center;
       border-bottom: 1px solid var(--gold-dark);
-      padding-bottom: 20px;
-      margin-bottom: 24px;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
     }
-    .rune { font-size: 28px; letter-spacing: 8px; color: var(--gold); margin-bottom: 6px; }
-    .title { font-size: 20px; font-weight: 500; color: var(--gold); letter-spacing: 1px; margin-bottom: 4px; }
-    .sub { font-size: 13px; color: #a08c5b; }
-    .phase {
-      background: var(--blue-mid);
-      border: 1px solid var(--gold-dark);
-      border-radius: 8px;
-      margin-bottom: 16px;
-      overflow: hidden;
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--gold); margin-bottom: 4px; }
+    .title { font-size: 18px; font-weight: 500; color: var(--gold); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 12px; color: #a08c5b; }
+
+    /* 스텝 인디케이터 */
+    .steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
     }
+    .step-dot {
+      width: 32px; height: 32px;
+      border: 1.5px solid var(--gold-dark);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 500; color: #7a6a40;
+      cursor: pointer;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .step-dot.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: #1a2a10;
+      box-shadow: 0 0 8px rgba(200,155,60,0.3);
+    }
+    .step-dot.done {
+      border-color: #3a6a2a;
+      color: #5aaa5a;
+      background: #0d2010;
+    }
+    .step-line {
+      width: 40px; height: 1px;
+      background: var(--gold-dark);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .step-line.done { background: #3a6a2a; }
+
+    /* 페이지 */
+    .page { display: none; }
+    .page.active { display: block; }
+
     .phase-header {
       display: flex;
       align-items: center;
       gap: 10px;
       background: linear-gradient(90deg, #1a2a1a 0%, var(--blue-mid) 100%);
-      border-bottom: 1px solid var(--gold-dark);
+      border: 1px solid var(--gold-dark);
+      border-radius: 8px 8px 0 0;
       padding: 12px 16px;
     }
     .phase-num {
@@ -71,11 +103,15 @@
       padding: 2px 7px;
     }
     .phase-body {
+      background: var(--blue-mid);
+      border: 1px solid var(--gold-dark);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
       padding: 16px;
       font-size: 14px;
       line-height: 1.7;
       color: #c8b88a;
-      display: block;
+      min-height: 320px;
     }
     .quest-box {
       background: #050d1a;
@@ -137,17 +173,41 @@
     .reward-icon { font-size: 18px; }
     .reward-text { font-size: 13px; color: #9ab87a; }
     .divider { border: none; border-top: 1px solid var(--gold-dark); margin: 14px 0; opacity: 0.5; }
+    .highlight { color: var(--gold); font-weight: 500; }
+
+    /* 네비게이션 버튼 */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 16px;
+    }
+    .nav-btn {
+      background: #0d2010;
+      border: 1px solid var(--gold-dark);
+      border-radius: 6px;
+      color: var(--gold);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 20px;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: #1a3a18; border-color: var(--gold); }
+    .nav-btn:disabled { opacity: 0.3; cursor: default; }
+    .nav-btn.next { background: #1a3010; border-color: var(--gold); }
+    .nav-btn.next:hover:not(:disabled) { background: #254518; }
+    .page-label { font-size: 12px; color: #7a6a40; }
+
     .footer {
       text-align: center;
-      padding-top: 16px;
+      padding-top: 14px;
       border-top: 1px solid var(--gold-dark);
-      margin-top: 8px;
-      font-size: 13px;
+      margin-top: 16px;
+      font-size: 12px;
       color: #7a6a40;
     }
-    .toggle-icon { font-size: 12px; color: #7a6a40; transition: transform .2s; }
-    .toggle-icon.open { transform: rotate(180deg); }
-    .highlight { color: var(--gold); font-weight: 500; }
   </style>
 </head>
 <body>
@@ -158,15 +218,17 @@
     <div class="sub">하나로 협곡 특별 미션 · 난이도: ★★★☆☆ · 소요시간: 약 60분</div>
   </div>
 
-  <!-- Phase 1 -->
-  <div class="phase">
-    <div class="phase-header" onclick="toggle(this)">
+  <!-- 스텝 인디케이터 -->
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
       <div class="phase-num">1</div>
       <div class="phase-title">소환사 신원 공개 — 자기소개</div>
       <div class="phase-badge">필수 퀘스트</div>
-      <div class="toggle-icon">▼</div>
     </div>
-    <div class="phase-body open">
+    <div class="phase-body">
       <p>오늘은 앞으로 <span class="highlight">1개월간 함께 싸울 아군</span>을 처음 만나는 날입니다. 서로의 신원을 파악해야 팀 전략을 짤 수 있겠죠? 아래 항목을 포함하여 자기소개를 진행해주세요.</p>
       <div class="quest-box">
         <strong>📋 소환사 프로필 공개 항목</strong><br><br>
@@ -183,13 +245,12 @@
     </div>
   </div>
 
-  <!-- Phase 2 -->
-  <div class="phase">
-    <div class="phase-header" onclick="toggle(this)">
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
       <div class="phase-num">2</div>
       <div class="phase-title">아군 기지 구축 — 팀 워크스페이스 개설</div>
       <div class="phase-badge">필수 퀘스트</div>
-      <div class="toggle-icon">▼</div>
     </div>
     <div class="phase-body">
       <p>팀원들과 협력하려면 <span class="highlight">공동 작전 기지</span>가 필요합니다. 아래 중 하나 이상의 채널을 만들어 팀원 전원을 초대해주세요.</p>
@@ -199,6 +260,9 @@
         <li>노션(Notion) 팀 페이지</li>
         <li>기타 팀이 합의한 협업 도구</li>
       </ul>
+      <div class="quest-box">
+        팀원 모두가 접근할 수 있는 공간을 만들고, 앞으로의 작전 내용을 공유하는 기지로 활용하세요!
+      </div>
       <div class="reward">
         <div class="reward-icon">🏅</div>
         <div class="reward-text">퀘스트 완료 시 획득: <strong>팀 소통 채널 활성화</strong> · 협업 효율 +15</div>
@@ -206,19 +270,22 @@
     </div>
   </div>
 
-  <!-- Phase 3 -->
-  <div class="phase">
-    <div class="phase-header" onclick="toggle(this)">
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
       <div class="phase-num">3</div>
       <div class="phase-title">소환사 길드 명명 — 팀 이름 선정</div>
       <div class="phase-badge">필수 퀘스트</div>
-      <div class="toggle-icon">▼</div>
     </div>
     <div class="phase-body">
       <p>워크스페이스 개설까지 완료했다면, 이제 여러분 팀의 <span class="highlight">길드명(팀 이름)</span>을 정할 차례입니다. 팀원 모두가 납득할 수 있는 이름으로 자유롭게 회의하여 결정해주세요.</p>
       <div class="quest-box">
-        팀 이름은 이번 프로젝트 기간 내내 여러분의 정체성이 됩니다.<br>
+        팀 이름은 이번 프로젝트 기간 내내 여러분의 정체성이 됩니다.<br><br>
         교육, 협력, 성장을 담은 이름도 좋고, 유쾌하고 개성 있는 이름도 환영합니다!
+      </div>
+      <div class="example-box">
+        <div class="label">팀 이름 힌트</div>
+        협곡의 영웅들 / 데이터 기사단 / 하나로 레인저스 / 퀘스트 클리어즈 …
       </div>
       <div class="reward">
         <div class="reward-icon">🏅</div>
@@ -227,16 +294,15 @@
     </div>
   </div>
 
-  <!-- Phase 4 -->
-  <div class="phase">
-    <div class="phase-header" onclick="toggle(this)">
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
       <div class="phase-num">4</div>
       <div class="phase-title">지피지기 — 서로를 깊이 알아가기</div>
       <div class="phase-badge">심화 퀘스트</div>
-      <div class="toggle-icon">▼</div>
     </div>
     <div class="phase-body">
-      <p>팀장을 정하기 전, 먼저 서로를 더 깊이 파악하는 시간을 가져봅시다. <span class="highlight">"지피지기면 백전불태"</span> — 팀원을 잘 알아야 최강의 시너지를 낼 수 있습니다.</p>
+      <p>팀장을 정하기 전, 먼저 서로를 더 깊이 파악하는 시간을 가져봅시다. <span class="highlight">"지피지기면 백전불태"</span></p>
       <hr class="divider">
       <div class="q-box">
         <div class="q-num">[ 질문 1 ]</div>
@@ -253,7 +319,7 @@
       </div>
       <div class="q-box">
         <div class="q-num">[ 질문 4 ]</div>
-        <div class="q-text">팀원들의 이야기를 바탕으로, 각 팀원에게 붙여주고 싶은 닉네임(별명)을 상의하여 정해주세요.</div>
+        <div class="q-text">팀원들의 이야기를 바탕으로, 각 팀원에게 붙여주고 싶은 닉네임(별명)을 정해주세요.</div>
         <div class="q-hint">닉네임은 앞으로 팀 활동 중 서로를 부르는 호칭이 될 수 있습니다.</div>
       </div>
       <div class="reward">
@@ -263,18 +329,17 @@
     </div>
   </div>
 
-  <!-- Phase 5 -->
-  <div class="phase">
-    <div class="phase-header" onclick="toggle(this)">
+  <!-- Page 5 -->
+  <div class="page" id="page-4">
+    <div class="phase-header">
       <div class="phase-num">5</div>
       <div class="phase-title">리더 소환 — 팀장 선출 &amp; 결과 보고</div>
       <div class="phase-badge">최종 퀘스트</div>
-      <div class="toggle-icon">▼</div>
     </div>
     <div class="phase-body">
       <p>지금까지의 대화를 통해 서로를 충분히 파악했다면, 이제 <span class="highlight">팀의 리더(팀장)</span>를 선출할 시간입니다. 앞선 대화 내용을 바탕으로 자유롭게 논의하여 팀장을 정해주세요.</p>
       <hr class="divider">
-      <p>모든 활동이 완료되면, 팀장님이 아래 양식에 맞춰 결과를 메일로 제출해주시면 됩니다.</p>
+      <p style="margin-bottom:8px;">모든 활동이 완료되면, 팀장님이 아래 양식에 맞춰 결과를 메일로 제출해주세요.</p>
       <div class="quest-box">
         <strong>📧 제출 양식 (팀장 메일 발송)</strong><br><br>
         · 팀 이름<br>
@@ -290,28 +355,63 @@
     </div>
   </div>
 
+  <!-- 네비게이션 -->
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전 퀘스트</button>
+    <span class="page-label" id="page-label">1 / 5</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 퀘스트 ▶</button>
+  </div>
+
   <div class="footer">
     ✦ &nbsp; 소환사님, 오늘의 팀 결성이 앞으로의 여정을 결정짓습니다. 함께라면 어떤 퀘스트도 클리어할 수 있습니다! &nbsp; ✦
   </div>
 </div>
 
 <script>
-  function sendHeight() {
-    const height = document.documentElement.scrollHeight;
-    window.parent.postMessage({ type: 'setHeight', height }, '*');
+  const total = 5;
+  let current = 0;
+
+  // 스텝 인디케이터 생성
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      line.id = 'line-' + i;
+      stepsEl.appendChild(line);
+    }
   }
 
-  function toggle(header) {
-    const body = header.nextElementSibling;
-    const icon = header.querySelector('.toggle-icon');
-    const isOpen = body.classList.contains('open');
-    body.classList.toggle('open', !isOpen);
-    icon.classList.toggle('open', !isOpen);
-    setTimeout(sendHeight, 50);
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '완료! 🏆' : '다음 퀘스트 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
   }
 
-  window.addEventListener('load', sendHeight);
-  window.addEventListener('resize', sendHeight);
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
 </script>
 </body>
 </html>
