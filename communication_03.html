@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>커뮤니케이션-라이브 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1e1a2e; --panel: #26203a; --card: #2e2840; --border: #3d3560;
+      --accent: #7060c0; --accent-dim: #503a90; --accent-light: #a090e0;
+      --text-main: #e8e0ff; --text-sub: #9080c0; --text-muted: #4a3870;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #120e1e; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(160,144,224,0.1); box-shadow: 0 0 8px rgba(160,144,224,0.25); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 36px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(160,144,224,0.1) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #c0b0f0; background: rgba(160,144,224,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #120e1e; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #201830, #1e1a2e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .tag { background: rgba(160,144,224,0.1); border: 1px solid var(--accent-dim); border-radius: 20px; padding: 5px 14px; font-size: 13px; color: var(--accent-light); }
+    .cond-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+    .cond-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; margin-bottom: 10px; }
+    .cond-list { list-style: none; padding: 0; }
+    .cond-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-main); margin-bottom: 7px; line-height: 1.6; }
+    .cond-list li:last-child { margin-bottom: 0; }
+    .cond-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .cond-list li strong { color: var(--accent-light); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #120e1e; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(160,144,224,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(160,144,224,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(160,144,224,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(160,144,224,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">커뮤니케이션-라이브</div>
+    <div class="sub">Hanaro of Legends · 커뮤니케이션 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">📚</div>
+      <div class="phase-title">협곡의 독서왕이 되어라!</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡에서 새로운 퀘스트가 발행되었습니다. 협곡을 살아가는 소환사님들, 이제 <span class="highlight">여러분이 읽은 책 한 권이 협곡 전체에 큰 영감을 줄 시간</span>이 되었습니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">⚡ 퀘스트 브리핑</div>
+        <div class="mission-announce-text">이번 미션은 단순히 포인트를 얻기 위한 도전이 아닙니다.<br>소환사님들이 나눈 책 한 권 한 권이<br>협곡에 지혜와 통찰을 더할 것입니다!</div>
+      </div>
+      <p>소환사님의 목표는 간단하지만 강력합니다. <span class="highlight">자신이 가장 인상 깊게 읽은 책을 하나로 오브 레전드 패들렛에 간단한 소개와 사진으로 인증</span>하는 것입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📖</div>
+      <div class="phase-title">어떤 책이든 좋습니다!</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>책의 장르는 제한이 없습니다.</p>
+      <div class="tag-row">
+        <div class="tag">📕 감동적인 소설</div>
+        <div class="tag">💼 비즈니스 서적</div>
+        <div class="tag">🌱 자기계발서</div>
+        <div class="tag">📘 그 외 모든 책</div>
+      </div>
+      <p>중요한 것은 그 책이 소환사님께 <span class="highlight">어떤 의미였고, 왜 인상 깊었는지</span>를 간결하게 공유하는 것입니다.</p>
+      <div class="info-box">
+        📌 <strong>미션 달성 조건</strong><br><br>
+        · 패들렛 글은 반드시 <span class="highlight">소환사님의 이름 또는 Call Name</span>으로 작성<br>
+        · <span class="highlight">책의 사진</span>이 함께 포함되어야 함<br><br>
+        책의 사진은 단순히 표지를 찍은 사진이든, 소환사님이 직접 책을 읽고 있는 모습이든 상관없습니다. 중요한 것은 <span class="highlight">소환사님의 진심이 느껴지는 순간</span>을 담는 것입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🌟</div>
+      <div class="phase-title">협곡의 지식 도서관을 채워라!</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>이 퀘스트의 진정한 매력은 <span class="highlight">협곡 전체가 함께 만들어가는 지식의 도서관</span>에 있습니다. 소환사님이 공유한 책이 다른 소환사들에게 새로운 독서의 영감을 줄 수 있습니다.</p>
+      <p>어떤 이는 소환사님의 추천을 통해 새로운 시각을 얻을 수도 있고, 또 어떤 이는 그 책을 읽으며 자신만의 깨달음을 얻을 수도 있습니다. <span class="highlight">독서를 통해 협곡은 더욱 풍요로워질 것</span>입니다.</p>
+      <div class="info-box">
+        💡 진정한 보상은 협곡 내에서 형성되는 지식의 흐름과,<br>
+        소환사님이 협곡에 남기는 <span class="highlight">긍정적인 영향</span>입니다.<br><br>
+        소환사님의 한 권의 책은 단순히 한 개인의 경험을 넘어,<br>
+        <span class="highlight">협곡 전체의 지혜와 성장에 기여</span>하게 될 것입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 달성 조건 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">이제, 소환사님의 인생 책을 하나로 협곡에 소개할 시간입니다.<br>패들렛에 소환사님의 이야기를 공유하고, 독서왕이 되는 여정을 시작하세요.<br>협곡 전체가 소환사님의 이야기를 기다리고 있습니다!</div>
+      </div>
+      <hr class="divider">
+      <div class="cond-card">
+        <div class="cond-title">⚡ 미션 달성 조건</div>
+        <ul class="cond-list">
+          <li>자신이 가장 <strong>인상깊게 읽은 책 선정</strong></li>
+          <li>하나로 오브 레전드 패들렛에 <strong>간단한 소개 및 사진</strong>과 함께 인증해주세요.</li>
+          <li>작성 내용에 <strong>책 제목 / 저자</strong>와 책을 간단하게 소개하는 내용이 들어가야 합니다.</li>
+          <li>자신의 <strong>이름 (또는 Call Name)</strong>으로 작성이 되어야 합니다.</li>
+        </ul>
+      </div>
+      <div class="cond-card">
+        <div class="cond-title">👥 대상</div>
+        <ul class="cond-list">
+          <li><strong>전 기수 포함 전체 인원</strong></li>
+        </ul>
+      </div>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">기본 보상</div>
+          <div class="reward-value">100 포인트</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-info">
+          <div class="reward-label">추가 보상</div>
+          <div class="reward-value">좋아요 5개 and 댓글 5개 당 <span style="color:var(--accent-light)">+10 포인트</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 4, labels = ['퀘스트 브리핑', '참여 방법', '지식의 도서관', '달성 조건 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>
