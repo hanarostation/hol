@@ -394,7 +394,7 @@
           <div class="reward-label">제출 파일</div>
           <div class="reward-value">디지털 하나로 A 팀 .xlsx</div>
         </div>
-        <a href="files/team_A.xlsx" download class="download-btn">⬇ 다운로드</a>
+        <button onclick="forceDownload()" class="download-btn">⬇ 다운로드</button>
       </div>
 
       <hr class="divider">
@@ -446,6 +446,24 @@
 </div>
 
 <script>
+  function forceDownload() {
+    const url = 'files/team_A.xlsx';
+    fetch(url)
+      .then(res => res.blob())
+      .then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'team_A.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+      })
+      .catch(() => {
+        window.open(url, '_blank');
+      });
+  }
+
   const total = 3;
   let current = 0;
   const labels = ['배경 스토리', '자기소개 미션', '제출 & 보상'];
