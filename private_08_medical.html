@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>의료 제품 도매/납품 유통 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e; --panel: #252310; --card: #2e2c14; --border: #4a4620;
+      --accent: #8a8230; --accent-dim: #605c20; --accent-light: #c0b84a;
+      --text-main: #f0eccc; --text-sub: #a09c60; --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #111008; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #1e1c08, #1c1a0e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .data-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .data-card-title { font-size: 14px; font-weight: 500; color: var(--accent-light); }
+    .download-btn { display: inline-flex; align-items: center; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500; padding: 5px 12px; white-space: nowrap; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .download-btn:hover { background: rgba(192,184,74,0.2); border-color: var(--accent-light); }
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item { display: flex; align-items: flex-start; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+    .mission-num { width: 28px; height: 28px; flex-shrink: 0; background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent-light); }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li { font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #111008; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6; }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(192,184,74,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">의료 제품 도매/납품 유통</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🏥</div>
+      <div class="phase-title">협곡 유통망의 비효율을 바로잡아라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡에는 의료 제품을 도매로 공급받아 협곡 곳곳의 소매점과 병원에 납품하는 유통업체들이 있습니다. 이들은 <span class="highlight">협곡 주민들의 건강을 지키는 중요한 역할</span>을 맡고 있습니다.</p>
+      <p>하지만 최근 들어 협곡의 유통망에 <span class="highlight">불균형과 비효율이 발생</span>하면서, 협곡 주민들의 신뢰를 회복하기 위한 분석이 절실해졌습니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">⚡ 퀘스트 브리핑</div>
+        <div class="mission-announce-text">도매 가격, 판매 금액, 업체 분류, 납품 수량 등<br>모든 정보가 협곡 내 유통 흐름의 한 조각을 이루고 있습니다.<br>이 데이터가 제대로 분석되지 않으면 주민들의<br>의료 제품 접근성에 악영향을 미칠 것입니다!</div>
+      </div>
+      <p>이를 해결하기 위해 협곡 데이터 분석팀이 출동했습니다.</p>
+      <div class="info-box">
+        🎯 <strong>이번 퀘스트의 목표</strong><br><br>
+        데이터를 활용해 <span class="highlight">협곡 유통의 비효율을 바로잡고</span>,<br>
+        효율적이고 공정한 유통망을 설계하는 것입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">분석 요청 — 8가지 임무를 완수하라!</div>
+      <div class="phase-badge">Mission Tasks</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-title">📂 데이터 파일 — WS_Medical_data.csv</div>
+        <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/WS_Medical_data.csv')">⬇ 다운로드</button>
+      </div>
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">위의 의료용품 데이터를 가져와, <strong>업체분류의 빈도수가 높은 10개 데이터</strong>들만 추출하여 뽑아 업체분류에 따른 <strong>23년 대비 24년 판매금액 증감율</strong>을 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text"><strong>도매최대가와 도매최소가의 차이가 가장 큰 제품</strong>을 확인하고, 해당 제품이 어떤 업종에 가장 많이 납품되었는지, 업체분류 별 도매매입수량의 합을 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text">업체유형에서 <strong>"개인병원"</strong>에 해당하는 데이터를 뽑아, 시간에 따른 도매매입수량의 합이 어떻게 변화하는지 <strong>선그래프로 시각화</strong> 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">각 연도 별 <strong>판매금액이 가장 많은 팀</strong>을 확인하고, 해당 팀의 24년 대비 25년 판매금액 평균(또는 대표값)의 유의미한 차이가 있는지 검정하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">판매금액(납품가격)보다 도매매입금액이 더 큰 (마진이 남지 않는) 데이터를 뽑아 제품의 빈도수 비율을 확인하고, 전체 데이터에서 <strong>"마진여부"</strong> 항목을 만들어 마진이 있는 데이터는 1 / 없는 경우는 0으로 분류하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text"><strong>'마진여부'를 분류하는 분류모델</strong>을 구성하고자 한다. 아래의 데이터를 활용해, 분류모델을 만들고 학습데이터와 검증데이터의 성능을 확인하시오.
+            <ul class="sub-list">
+              <li>입력 데이터 : '팀' / '업체분류' / '도매최대가' / '도매최소가' / '영업그룹' / '연도' / '월'</li>
+              <li>학습 / 검증 데이터 비율은 7:3</li>
+              <li>Threshold Tuning 실시 및 AUC 값을 활용하여 평가 실시</li>
+            </ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">7</div>
+          <div class="mission-text"><strong>'거래예측가격'</strong>(팀에서 정한 예측가격, 또는 거래 목표)과 <strong>'판매금액'</strong>(실제 판매된 가격)을 비교하여, 예측가격을 달성하지 못한 데이터를 뽑아, 해당 데이터의 '팀' / '업체분류' / '제품명'의 빈도수를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">8</div>
+          <div class="mission-text">거래예측가격(또는 거래 목표 금액)을 정확하게 추정하기 위한, <strong>판매금액 예측 회귀모델</strong>을 만들고 학습데이터와 검증데이터의 성능을 확인하시오.
+            <ul class="sub-list">
+              <li>입력 데이터 : '업체분류' / '도매최대가' / '도매최소가' / '연도' / '월' / '제품명'</li>
+              <li>학습 / 검증데이터 비율은 7:3</li>
+              <li>MSE와 R²를 이용하여 평가 실시</li>
+            </ul>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">이번 퀘스트는 단순히 데이터를 분석하는 작업을 넘어<br>협곡의 의료 제품 유통망을 근본적으로 재설계하는 여정입니다.<br>협곡 주민들의 건강과 안전은 당신의 손에 달려 있습니다.<br>지금 바로 미션을 시작하세요!</div>
+      </div>
+      <p>데이터를 통해 협곡의 미래를 열어가고, <span class="highlight">더 나은 유통망을 만들어</span> 주세요. 협곡은 당신의 통찰력과 노력으로 더욱 빛날 것입니다.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>의료 유통(도매) 데이터 분석 수행</li>
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 HTML 형식으로 저장하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 3, labels = ['퀘스트 브리핑', '8가지 분석 임무', '제출 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>

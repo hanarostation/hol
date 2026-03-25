@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>아트 펀딩, 제 2의 비트코인? — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e;
+      --panel: #252310;
+      --card: #2e2c14;
+      --border: #4a4620;
+      --accent: #8a8230;
+      --accent-dim: #605c20;
+      --accent-light: #c0b84a;
+      --text-main: #f0eccc;
+      --text-sub: #a09c60;
+      --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--bg); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-light);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1);
+      border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--panel); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .highlight-good { color: #7aaa5a; font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+
+    .info-box {
+      background: #111008; border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.8;
+    }
+
+    .mission-announce {
+      background: linear-gradient(135deg, #1e1c08, #1c1a0e);
+      border: 1px solid var(--accent);
+      border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center;
+    }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+
+    .data-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+    }
+    .data-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 0;
+    }
+    .data-card-title { font-size: 15px; font-weight: 500; color: var(--accent-light); }
+    .download-btn {
+      display: inline-flex; align-items: center;
+      background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim);
+      border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500;
+      padding: 5px 12px; white-space: nowrap; cursor: pointer;
+      transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .download-btn:hover { background: rgba(192,184,74,0.2); border-color: var(--accent-light); }
+
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .mission-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--accent-light);
+    }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #111008; border: 1px solid var(--border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(192,184,74,0.06); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500;
+      padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">아트 펀딩, 제 2의 비트코인?</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🎨</div>
+      <div class="phase-title">예술 경매 시장의 비밀을 파헤쳐라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 하나로 협곡에서 새로운 데이터 분석 미션이 도착했습니다.</p>
+      <p>이번 도전은 <span class="highlight">예술품 아트 펀딩 데이터</span>를 분석하여 예술 경매 시장의 동향을 파악하고, 숨겨진 통찰을 도출하는 데 목적이 있습니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">⚡ 퀘스트 브리핑</div>
+        <div class="mission-announce-text">예술품은 단순히 거래의 대상이 아닙니다.<br>각 작품이 지닌 가치와 역사가 시장에서 어떻게 반영되는지를<br>데이터로 밝혀내는 것이 이번 임무입니다!</div>
+      </div>
+      <p>아트 펀딩은 단순히 예술품을 구매하고 거래하는 것을 넘어, <span class="highlight">예술과 재테크가 결합된 새로운 투자 방식</span>으로 떠오르고 있습니다.</p>
+      <p>아트 펀딩은 작품 하나에 여러 투자자가 참여하여 소유권을 분할하고, 이를 통해 작품의 가치를 공유하는 방식으로 진행됩니다. 예술품의 독창성과 유일성을 유지하면서도 시장의 흐름에 따라 투자 기회를 제공하는 이 모델은, <span class="highlight">예술과 재테크가 결합된 가장 혁신적인 형태</span>로 주목받고 있습니다.</p>
+      <div class="info-box">
+        🎯 <strong>이번 미션의 핵심</strong><br><br>
+        · 예술품 경매의 <span class="highlight">계절적 패턴과 시장 동향</span> 이해<br>
+        · 예술품의 <span class="highlight">투자 가능성과 장기적인 가치</span> 평가<br>
+        · 특정 예술가가 시장에서 <span class="highlight">꾸준히 높은 가치</span>를 인정받는지 분석
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">분석 요청 — 10가지 임무를 완수하라!</div>
+      <div class="phase-badge">Mission Tasks</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">📂 데이터 파일 — seoulauction_data.xls</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/seoulauction_data.xls')">⬇ 다운로드</button>
+        </div>
+      </div>
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">위의 데이터를 불러와, <strong>선 그래프</strong>를 활용해 낙찰된 예술품의 낙찰가의 합을 일별로 시각화하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text">경매 장소 별 낙찰가의 평균을 <strong>막대그래프</strong>로 시각화 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text">2019년도에 낙찰된 예술품 중 <strong>가장 비싸게 낙찰된 예술품 3가지</strong>를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">낙찰 된 이력이 2건 이상인 예술품을 확인하고, 최초 낙찰 되었을 때 금액과 마지막 낙찰 금액을 비교하여, 예술품의 낙찰 가격이 <strong>몇 % 증가했는지</strong> 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">유화(oil)작품 들 중, <strong>추정가의 최댓값이 가장 높은 예술품 30개</strong>를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text">가장 낙찰 횟수가 많은 예술가를 확인하고, 해당 예술가의 작품들 중, <strong>가장 오래된 작품</strong>을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">7</div>
+          <div class="mission-text">낙찰된 작품은 "이미지_URL" 항목에 링크로 접속하면 그림을 확인할 수 있다. 낙찰된 모든 예술품의 이미지 URL들 중, <strong>이미지가 불러와지지 않는 작품</strong>들이 무엇인지 확인하고, 해당 작품은 <strong>"확인 불가"</strong>라는 값을 "이미지_URL" 항목에 덮어 씌우시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">8</div>
+          <div class="mission-text">각 예술 작품들의 <strong>추정가 폭(최대 추정가 - 최저 추정가) KRW</strong>를 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">9</div>
+          <div class="mission-text">각 경매 회차 별, 가장 낙찰가가 높게 나온 회차를 확인하고, 해당 회차 작품들의 <strong>추정가 폭이 높은 순서대로 정렬</strong>하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">10</div>
+          <div class="mission-text">유찰 된 작품 (낙찰가 없는 작품)들의 <strong>추정가 평균 (최대 추정가 - 최소 추정가 KRW / 2)</strong>를 계산하시오.</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">데이터를 통해 예술 시장의 숨겨진 흐름을 파악하고,<br>이를 기반으로 협곡의 문화적 자산을 확장하세요.<br>하나로 협곡은 당신의 열정과 통찰을 기다리고 있습니다!</div>
+      </div>
+      <p>이번 퀘스트는 단순히 데이터를 정리하고 분석하는 것을 넘어, 예술품의 가치를 발견하고, 경매 시장의 통찰을 도출하는 데 중점을 둡니다.</p>
+      <p>준비가 되셨다면, 지금 바로 도전에 나서십시오. 이번 퀘스트는 <span class="highlight">협곡의 문화와 예술을 새로운 차원으로 이끌어줄 것</span>입니다.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>예술품 아트 펀딩 거래 데이터 분석 수행</li>
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 HTML 형식으로 저장하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 3;
+  let current = 0;
+  const labels = ['퀘스트 브리핑', '10가지 분석 임무', '제출 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>

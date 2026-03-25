@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>협곡의 날씨는 오늘도 맑음 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e; --panel: #252310; --card: #2e2c14; --border: #4a4620;
+      --accent: #8a8230; --accent-dim: #605c20; --accent-light: #c0b84a;
+      --text-main: #f0eccc; --text-sub: #a09c60; --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #111008; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #1e1c08, #1c1a0e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .data-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .data-card-title { font-size: 14px; font-weight: 500; color: var(--accent-light); }
+    .download-btn { display: inline-flex; align-items: center; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500; padding: 5px 12px; white-space: nowrap; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .download-btn:hover { background: rgba(192,184,74,0.2); border-color: var(--accent-light); }
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item { display: flex; align-items: flex-start; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+    .mission-num { width: 28px; height: 28px; flex-shrink: 0; background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent-light); }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li { font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #111008; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6; }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(192,184,74,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">협곡의 날씨는 오늘도 맑음</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🌤️</div>
+      <div class="phase-title">협곡 날씨의 비밀을 풀어라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡의 소환사님, 이번 미션은 <span class="highlight">협곡의 기후를 분석</span>하고, 날씨 데이터를 통해 협곡 주민들의 일상을 더욱 편리하고 안전하게 만드는 데 목적을 둔 특별한 도전입니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">⚡ 퀘스트 브리핑</div>
+        <div class="mission-announce-text">이번 퀘스트는 기상 데이터를 탐구하여<br>협곡의 날씨 변화를 이해하고,<br>이를 바탕으로 중요한 통찰을 도출하는 여정입니다!</div>
+      </div>
+      <p>하나로 협곡은 그 자체로 <span class="highlight">다양한 날씨의 특징을 지닌 특별한 장소</span>입니다. 협곡의 기상학 팀은 수년간의 관측 데이터를 수집하며, 날씨와 주민 생활의 연관성을 파악하기 위해 노력해왔습니다.</p>
+      <p>그러나 기후 변화의 영향을 받으며, 이제는 더 정교한 분석이 필요해졌습니다.</p>
+      <div class="info-box">
+        🎯 <strong>이번 퀘스트의 핵심</strong><br><br>
+        협곡 기상 데이터를 활용해 <span class="highlight">협곡 날씨의 비밀</span>을 풀어가야 합니다.<br>
+        날씨를 이해하는 것은 협곡의 안전과 발전을 위한 필수 요소입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">분석 요청 — 9가지 임무를 완수하라!</div>
+      <div class="phase-badge">Mission Tasks</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-title">📂 데이터 파일 — Meteorological_Data.csv</div>
+        <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/Meteorological_Data.csv')">⬇ 다운로드</button>
+      </div>
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">해당 기상 데이터에 모든 연속형 자료에 대해, <strong>기온과 가장 상관성이 높은 5개 항목</strong>을 확인하고, 5개 항목과 기온 데이터 간 상관성을 산점도로 시각화 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text">시간에 따라 <strong>기온의 변화를 일 단위 선 그래프</strong>로 시각화 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text">강수량 데이터를 활용하여, <strong>'우천여부'</strong>라는 항목을 생성해, 강수량이 있으면 '우천', 없으면 '맑음'으로 나누고, '우천'과 '맑은'에 대해 <strong>'현지기압'</strong>의 대표값의 차이가 있는지 검정하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">해당 기상 데이터의 '측정시간'을 활용해, <strong>'계절'</strong>이라는 파생변수를 생성하시오.<br>
+          <span style="font-size:13px;color:var(--text-muted);">(3~5 봄 / 6~8 여름 / 9~11 가을 / 12~2 겨울)</span></div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">해당 기상 데이터에 대해 <strong>겨울(12~2월)과 여름(6~8월)의 평균 기온차이</strong>가 얼마나 큰 지 계산하고, 각 계절 별로 비가 온 날이 몇일인지 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text">해당 기상 데이터의 연속형 자료들을 활용하여, <strong>군집분석</strong>을 수행해, 총 4개 군집으로 나누고, 각 군집 별 각 계절의 비율을 확인하시오.
+            <ul class="sub-list">
+              <li>실루엣 스코어를 계산하여, 군집 응집도 평가</li>
+            </ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">7</div>
+          <div class="mission-text">각 군집 별 연속형 자료의 특징을 파악해, <strong>군집 별 기상 특성이 어떻게 달라지는지</strong> 간단하게 서술하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">8</div>
+          <div class="mission-text"><strong>일교차(정오와 자정을 기준으로 기온 차이 계산)가 가장 큰 일자 상위 10개</strong>를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">9</div>
+          <div class="mission-text"><strong>풍속이 5m/s가 넘어가는 일자</strong>를 확인해, 해당 일자들의 평균기온/평균습도/최고기온/최저기온을 확인하시오.</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">당신의 데이터 분석 능력을 활용해<br>협곡 날씨의 비밀을 풀고,<br>주민들에게 더 나은 일상을 선사하세요.<br>하나로 협곡은 당신의 통찰과 노력을 기다리고 있습니다!</div>
+      </div>
+      <p>이번 퀘스트는 단순히 데이터를 분석하는 작업에 그치지 않습니다. 협곡 날씨 데이터는 <span class="highlight">주민들의 생활과 밀접하게 연결</span>되어 있으며, 날씨를 이해하는 것은 협곡의 안전과 발전을 위한 필수 요소입니다.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>협곡 기상 데이터 분석 수행</li>
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 HTML 형식으로 저장하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 3;
+  let current = 0;
+  const labels = ['퀘스트 브리핑', '9가지 분석 임무', '제출 & 보상'];
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const next = current + dir; if (next >= 0 && next < total) goTo(next); }
+</script>
+</body>
+</html>

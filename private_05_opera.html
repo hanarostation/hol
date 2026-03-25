@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>협곡 오페라의 유령 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e;
+      --panel: #252310;
+      --card: #2e2c14;
+      --border: #4a4620;
+      --accent: #8a8230;
+      --accent-dim: #605c20;
+      --accent-light: #c0b84a;
+      --text-main: #f0eccc;
+      --text-sub: #a09c60;
+      --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--bg); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-light);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1);
+      border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--panel); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+
+    .info-box {
+      background: #111008; border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.8;
+    }
+
+    .mission-announce {
+      background: linear-gradient(135deg, #1e1c08, #1c1a0e);
+      border: 1px solid var(--accent);
+      border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center;
+    }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+
+    .data-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+    .data-card {
+      flex: 1; min-width: 180px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .data-card-title { font-size: 13px; font-weight: 500; color: var(--accent-light); }
+    .download-btn {
+      display: inline-flex; align-items: center;
+      background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim);
+      border-radius: 6px; color: var(--accent-light); font-size: 12px; font-weight: 500;
+      padding: 4px 10px; white-space: nowrap; cursor: pointer;
+      transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .download-btn:hover { background: rgba(192,184,74,0.2); border-color: var(--accent-light); }
+
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .mission-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--accent-light);
+    }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li {
+      font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative;
+    }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #111008; border: 1px solid var(--border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(192,184,74,0.06); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500;
+      padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">협곡 오페라의 유령</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🎭</div>
+      <div class="phase-title">협곡 공연장의 비밀을 밝혀라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 하나로 협곡에 새로운 퀘스트가 도착했습니다.</p>
+      <p>이번 도전은 <span class="highlight">협곡의 공연장을 배경으로 공연 업계의 숨겨진 이야기</span>를 데이터로 탐구하는 특별한 여정입니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">⚡ 퀘스트 브리핑</div>
+        <div class="mission-announce-text">공연은 단순한 이벤트가 아닙니다.<br>관객과 예술가가 함께 만들어가는 하나의 작품입니다.<br>데이터로 협곡의 문화와 예술을 한 단계 더 끌어올리세요!</div>
+      </div>
+      <p>하나로 협곡의 공연장들은 저마다의 매력을 자랑하며, 관객들에게 잊지 못할 경험을 선사해 왔습니다.</p>
+      <p>그러나 공연 업계는 <span class="highlight">관객의 취향 변화와 티켓 예매 트렌드의 영향</span>을 받으며 끊임없이 변하고 있습니다.</p>
+      <div class="info-box">
+        🎯 <strong>이번 퀘스트의 핵심</strong><br><br>
+        이 데이터를 통해 <span class="highlight">공연장 운영을 최적화</span>하고,<br>
+        관객들에게 더 나은 서비스를 제공하는 방법을 찾아내는 것이 이번 퀘스트의 핵심입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">분석 요청 — 9가지 임무를 완수하라!</div>
+      <div class="phase-badge">Mission Tasks</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-row">
+        <div class="data-card">
+          <div class="data-card-title">📂 performance_info.csv</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/performance_info.csv')">⬇</button>
+        </div>
+        <div class="data-card">
+          <div class="data-card-title">📂 performance_ticket.csv</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/performance_ticket.csv')">⬇</button>
+        </div>
+        <div class="data-card">
+          <div class="data-card-title">📂 performance_venue.csv</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/performance_venue.csv')">⬇</button>
+        </div>
+      </div>
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">공연장 시설 데이터 (performance_venue.csv)를 불러와 <strong>"시설 특성"</strong>에 따른 좌석수의 총 합(좌석수 + 장애인석)을 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text"><strong>민간(대학로) 공연장</strong>에서 각 편의시설의 비율을 계산 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text">분장실과 연습실을 모두 갖춘 공연장에서 <strong>좌석수의 총합(장애인석 포함)이 가장 많은 공연장 10개</strong>를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">공연 정보 데이터 (performance_info.csv)와 티켓팅 정보를(performance_ticket.csv) 불러와, <strong>공연 소요시간이 3시간 이상인 공연들</strong>만 뽑아, 해당 공연들의 총 매출액 (결제금액 합)을 계산하시오. (예매/취소구분에서 1- 예매 / 2- 취소)</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">티켓팅 정보에서, <strong>성별(1-남성 / 2-여성)에 따라서, 예매 방식</strong> (예매/취소방식명(관리시스템))의 유의미한 차이가 있는 지 가설 검정을 수행하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text">가장 <strong>티켓 취소가 많이 발생한 공연</strong>을 확인하고, (예매/취소구분에서 1- 예매 / 2- 취소) 해당 공연에서 예매가 가장 많이 발생한 일자와 취소가 가장 많이 발생한 일자를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">7</div>
+          <div class="mission-text">공연 관련 정보를 입력했을 때, 해당 공연의 <strong>예매 취소 비율을 예측하는 모델</strong>을 구성하시오.
+            <ul class="sub-list">
+              <li>공연 정보 (공연 코드)를 기준으로 취소매수(예매/취소구분이 2인 데이터에서, 예매/취소매수의 합) 의 합이 Y값으로 계산 되어야 함</li>
+              <li>X 정보는 해당 공연의 "남/여 비율" / "소요시간" / "장르명" / "공연지역명" / "각 좌석 등급 금액" / "공연 일시" 정보가 포함되어야 함</li>
+            </ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">8</div>
+          <div class="mission-text">공연 정보에서 <strong>"출연진" 중 가장 많이 등장한 배우</strong>와, 해당 배우가 등장했을 때, 같이 등장할 확률이 가장 높은 배우는 누구인지 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">9</div>
+          <div class="mission-text">수상 실적이 있는 공연만 뽑아, 해당 공연에 <strong>"제작진"에 대한 연관 분석</strong>을 실시해, 가장 지지도가 높은 제작진 조합을 확인하시오.</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">데이터를 통해 새로운 가능성을 발견하며,<br>관객과 공연장이 함께 성장하는 미래를 만들어주세요.<br>하나로 협곡은 당신의 통찰력과 열정으로 더 빛날 것입니다!</div>
+      </div>
+      <p>이번 퀘스트는 단순히 데이터를 분석하는 데 그치지 않습니다.</p>
+      <p>소환사님, 당신은 <span class="highlight">협곡의 공연 문화를 이해하고, 관객과 공연장이 함께 성장하는 미래</span>를 만들어야 합니다. 준비가 되셨다면, 지금 바로 도전에 나서십시오.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>문화 공연 및 공연장 관련 데이터 분석 수행</li>
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 HTML 형식으로 저장하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 3;
+  let current = 0;
+  const labels = ['퀘스트 브리핑', '9가지 분석 임무', '제출 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>

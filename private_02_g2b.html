@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>조달청 데이터 분석 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e;
+      --panel: #252310;
+      --card: #2e2c14;
+      --border: #4a4620;
+      --accent: #8a8230;
+      --accent-dim: #605c20;
+      --accent-light: #c0b84a;
+      --text-main: #f0eccc;
+      --text-sub: #a09c60;
+      --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--bg); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-light);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1);
+      border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--panel); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .highlight-good { color: #7aaa5a; font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+
+    .info-box {
+      background: #111008; border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.8;
+    }
+
+    .mission-announce {
+      background: linear-gradient(135deg, #1e1c08, #1c1a0e);
+      border: 1px solid var(--accent);
+      border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center;
+    }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .mission-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--accent-light);
+    }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .mission-link {
+      display: inline-block; color: var(--accent-light); font-size: 13px;
+      text-decoration: underline; word-break: break-all;
+    }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li {
+      font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative;
+    }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #111008; border: 1px solid var(--border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(192,184,74,0.06); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500;
+      padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">조달청 데이터 분석</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">📜</div>
+      <div class="phase-title">협곡 경제를 설계하라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 하나로 협곡에 새로운 미션이 도착했습니다.</p>
+      <p>이번 도전은 협곡의 <span class="highlight">경제적 흐름과 전략을 좌우할 수 있는 조달청 데이터</span>를 분석하여, 협곡의 미래를 설계하는 중요한 임무입니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">⚡ 새로운 퀘스트 발령</div>
+        <div class="mission-announce-text">이번 퀘스트는 단순한 숫자와 통계 이상의 의미를 담고 있습니다.<br>당신의 통찰력과 분석 능력이<br>협곡의 전략적 결정을 이끌어갈 열쇠가 될 것입니다!</div>
+      </div>
+      <p>협곡은 항상 질서와 번영을 추구해 왔지만, 그 과정에서 반드시 필요한 요소 중 하나가 바로 <span class="highlight">공공 자원과 예산의 효율적 사용</span>입니다.</p>
+      <p>조달청 데이터는 공공 부문에서 어떻게 자원이 배분되고 활용되는지 보여주는 중요한 기록입니다. 데이터를 분석하여 그 안에 숨겨진 패턴과 통찰을 발견해야만, 협곡은 미래의 위기를 대비하고 기회를 포착할 수 있을 것입니다.</p>
+      <div class="info-box">
+        🎯 <strong>미션의 시작</strong><br><br>
+        <span class="highlight">조달청 발주 목록</span> 데이터를 수집하는 것으로 시작됩니다.<br>
+        2025년 동안 조달청에서 계획된 발주 데이터를 모두 수집하여,<br>
+        협곡의 데이터베이스에 체계적으로 저장하고 분석하세요.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">분석 요청 — 9가지 임무를 완수하라!</div>
+      <div class="phase-badge">Mission Tasks</div>
+    </div>
+    <div class="phase-body">
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">아래 조달청 사이트에 들어가, 발주 목록에 기재된 "발주계획" 데이터를 25년 전체 데이터를 수집하여, <strong>gtob.csv</strong>파일로 저장<br>
+          <a class="mission-link" href="https://www.g2b.go.kr/" target="_blank">https://www.g2b.go.kr/</a></div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text">"업무구분"에서 가장 빈도수가 높은 항목을 확인하고, 해당 항목의 <strong>"예산금액" 기술 통계량</strong>을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text">"업무구분"의 <strong>일반용역</strong>에 해당하는 발주 요청 중, 참조여부가 가능한 발주와 가능하지 못한 발주의 "예산금액" 대표값의 차이가 있는지 <strong>가설 검정</strong>을 수행 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">"수요기관"에서 <strong>교육청 및 초/중/고등학교</strong>에 해당하는 데이터를 추출하여, "업무구분" 별 "예산금액"의 평균을 <strong>시각화</strong> 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">"사업명"에서 <strong>'보수공사'</strong>와 관련된 발주 요청을 추출하여, 수요 기관 별 예산 금액의 <strong>합/최대/최소값</strong>을 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text">각 월 별로 가장 발주요청이 많았던 <strong>"수요기관"</strong>이 어디인지 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">7</div>
+          <div class="mission-text">발주 요청 "사업명" 데이터를 추출하여, <strong>"도로시설물"</strong>과 가장 유사성이 높은 단어들을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">8</div>
+          <div class="mission-text">업무구분, 수요기관, 진행월, 사업명을 입력했을 때, <strong>예산금액을 예측하는 회귀모델</strong>을 구성하시오.
+            <ul class="sub-list">
+              <li>특성 공학 기법 적용</li>
+              <li>학습 데이터와 검증데이터는 80:20 분할</li>
+              <li>검증 데이터의 R² 확인</li>
+            </ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">9</div>
+          <div class="mission-text">"수요기관"에서 지리적 행정구분이 가능한 데이터를 찾아, 각 시,도 별 (시는 광역시 단위) 데이터를 구분한 뒤, 각 시,도 별 "예산금액"의 합을 <strong>시각화</strong>하여, 가장 예산금액이 높은 지역을 확인하시오.</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🔮</div>
+      <div class="phase-title">데이터로 협곡의 미래를 열어라!</div>
+      <div class="phase-badge">Mission Purpose</div>
+    </div>
+    <div class="phase-body">
+      <p>모든 과정은 단순히 데이터를 분석하는 데 그치지 않습니다.</p>
+      <p>분석의 결과물을 통해 협곡 내에서의 <span class="highlight">정책 결정, 자원 배분, 효율성 개선</span>과 같은 실질적인 변화로 이어지는 것이 이번 퀘스트의 핵심입니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">당신의 데이터 분석 능력은<br>협곡의 미래를 바꿀 힘이 될 것입니다.<br>이번 퀘스트는 단순한 도전이 아니라,<br>협곡의 새로운 가능성을 여는 여정입니다.</div>
+      </div>
+      <p>이제 당신의 차례입니다.<br>협곡의 데이터와 함께, <span class="highlight">새로운 전략과 통찰력</span>을 찾아 나서십시오!</p>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <hr class="divider" style="margin-top:0;">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>조달청에 있는 <strong>발주 데이터 수집</strong> (25년도)</li>
+            <li>주어진 <strong>9가지 개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 HTML 형식으로 저장하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 4;
+  let current = 0;
+  const labels = ['퀘스트 브리핑', '9가지 분석 임무', '미션의 의미', '제출 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>

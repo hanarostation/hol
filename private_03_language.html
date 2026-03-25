@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>어학원 강사 데이터 분석 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e;
+      --panel: #252310;
+      --card: #2e2c14;
+      --border: #4a4620;
+      --accent: #8a8230;
+      --accent-dim: #605c20;
+      --accent-light: #c0b84a;
+      --text-main: #f0eccc;
+      --text-sub: #a09c60;
+      --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--bg); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-light);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1);
+      border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--panel); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .highlight-good { color: #7aaa5a; font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+
+    .info-box {
+      background: #111008; border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.8;
+    }
+
+    .mission-announce {
+      background: linear-gradient(135deg, #1e1c08, #1c1a0e);
+      border: 1px solid var(--accent);
+      border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center;
+    }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+
+    .data-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+    }
+    .data-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    }
+    .data-card-title { font-size: 15px; font-weight: 500; color: var(--accent-light); }
+    .download-btn {
+      display: inline-flex; align-items: center;
+      background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim);
+      border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500;
+      padding: 5px 12px; white-space: nowrap; cursor: pointer;
+      transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .download-btn:hover { background: rgba(192,184,74,0.2); border-color: var(--accent-light); }
+
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;
+    }
+    .mission-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--accent-light);
+    }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li {
+      font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative;
+    }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #111008; border: 1px solid var(--border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(192,184,74,0.06); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500;
+      padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">어학원 강사 데이터 분석</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🎓</div>
+      <div class="phase-title">A어학원의 비밀을 파헤쳐라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 하나로 협곡에 중요한 데이터 분석 미션이 도착했습니다.</p>
+      <p>이번 퀘스트는 <span class="highlight">A어학원의 데이터를 분석</span>하여 강사별 성과를 파악하고 수업 운영의 효율성을 극대화하는 데 목적이 있습니다.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">⚡ 퀘스트 브리핑</div>
+        <div class="mission-announce-text">단순히 데이터를 다루는 작업이 아닙니다.<br>강사들의 노력을 정량적으로 분석하고<br>어학원의 운영 전략을 설계하는 도전입니다!</div>
+      </div>
+      <p>첫 번째 과제는 다양한 언어 수업 중 가장 높은 <span class="highlight">총지급 강사료</span>를 기록한 수업을 확인하는 것입니다. 이는 어학원에서 가장 가치 있는 언어 수업을 파악하고, 해당 수업에 더 많은 자원을 투입할 전략을 설계하는 중요한 단서가 될 것입니다.</p>
+      <p>강사별 분석도 핵심 과제 중 하나입니다. 전체 데이터를 통해 <span class="highlight">가장 많은 강사료를 받은 강사</span>를 확인하고, 해당 강사의 총 강의 기간을 계산해야 합니다. 이를 통해 강사의 성과와 어학원에 미친 영향을 구체적으로 파악할 수 있습니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📋</div>
+      <div class="phase-title">분석 요청 — 9가지 임무를 완수하라!</div>
+      <div class="phase-badge">Mission Tasks</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">📂 데이터 파일 — language_classes.csv</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/language_classes.csv')">⬇ 다운로드</button>
+        </div>
+      </div>
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">위의 데이터를 불러와, 수업이 진행되는 언어 중 ('언어(수업)') 가장 <strong>"총지급 강사료"</strong>의 합이 높은 수업을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text">각 <strong>"담당 매니저"</strong> 별 "클래스 수업료"와 "총지급 강사료"의 평균을 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text">전체적으로 볼 때, 가장 많은 강사료를 받은 강사를 확인하고, 해당 강사의 <strong>총 강의 기간</strong>을 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">각 강사들의 강의 빈도를 계산하고, 강사 별 "총 강사료"의 합과 가장 최근에 강의한 일자를 확인하여, 각 강사의 <strong>RFM Score</strong>를 계산하시오.
+            <ul class="sub-list">
+              <li>각 강사 별로 RFM Score 산출</li>
+              <li>"강의 빈도" - Frequency / "총 지급 강사료"의 합 - Momentary / "가장 최근에 열린 강의" (마지막 일로부터, 해당 클래스 강의까지 일수) - Recency</li>
+              <li>RFM Score = 0.3 x Frequency + 0.5 x Momentary - 0.2 x Recency</li>
+            </ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">앞서 계산한 RFM 분석으로 강사들의 <strong>등급을 분류</strong>하시오.
+            <ul class="sub-list">
+              <li>RFM Score 상위 10% → A 등급</li>
+              <li>RFM Score 상위 30% → B 등급</li>
+              <li>RFM Score 상위 50% → C 등급</li>
+              <li>RFM Score 상위 50% 미만 → D 등급</li>
+            </ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text">각 등급 별 "총 지급 강사료"의 평균과 "강의 빈도"를 <strong>시각화</strong>하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">7</div>
+          <div class="mission-text">"class 종류"에서 빈도수가 높은 상위 4개의 항목에 대해 "언어(수업)"에서 영어, 일본어, 중국어의 유의미한 차이가 있는지 <strong>가설 검정</strong>을 수행하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">8</div>
+          <div class="mission-text">강의 기간이 가장 긴 클래스 상위 100가지를 확인하여, 해당 강의들의 <strong>"언어(수업)" 비율</strong>을 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">9</div>
+          <div class="mission-text">강의 정보를 입력했을 때, <strong>클래스 수업료를 예측하는 회귀 모델</strong>을 구성하시오.
+            <ul class="sub-list">
+              <li>강의 기간 / 강사명 / 담당매니저 / 언어(수업) / 강사료 / class 종류를 입력 받아야 함</li>
+              <li>특성 공학 기법 활용</li>
+              <li>학습/검증 데이터 비율은 7:3</li>
+              <li>검증은 R²를 활용하여 Test Set 성능 확인</li>
+            </ul>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">데이터를 통해 강사와 수업 운영의 숨겨진 이야기를 발견하고,<br>어학원이 더 나은 방향으로 나아갈 수 있도록 도와주세요.<br>이제는 당신의 차례입니다!</div>
+      </div>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>A어학원 내 각 강사 별 수업 강의료 분석 수행</li>
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 HTML 형식으로 저장하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 3;
+  let current = 0;
+  const labels = ['퀘스트 브리핑', '9가지 분석 임무', '제출 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>
