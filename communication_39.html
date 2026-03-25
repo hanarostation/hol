@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>우리의 찬란한 앞날을 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1e1a2e; --panel: #26203a; --card: #2e2840; --border: #3d3560;
+      --accent: #7060c0; --accent-dim: #503a90; --accent-light: #a090e0;
+      --text-main: #e8e0ff; --text-sub: #9080c0; --text-muted: #4a3870;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #120e1e; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(160,144,224,0.1); box-shadow: 0 0 8px rgba(160,144,224,0.25); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 28px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(160,144,224,0.1) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #c0b0f0; background: rgba(160,144,224,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .highlight-warm { color: #e0a060; font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #120e1e; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #201810, #120e1e); border: 1px solid #805030; border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: #e0a060; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .final-banner { background: linear-gradient(135deg, #201810, #1a1020); border: 2px solid #805030; border-radius: 10px; padding: 24px 16px; margin: 14px 0; text-align: center; }
+    .final-icon { font-size: 52px; line-height: 1; margin-bottom: 10px; }
+    .final-title { font-size: 20px; font-weight: 700; color: #e0a060; margin-bottom: 6px; letter-spacing: 1px; }
+    .final-sub { font-size: 13px; color: #805030; line-height: 1.7; }
+    .final-stars { font-size: 18px; letter-spacing: 6px; margin-top: 10px; opacity: 0.7; }
+    .reward-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #120e1e; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .reward-sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .reward-sub-list li { font-size: 13px; color: var(--text-sub); padding: 3px 0 3px 12px; position: relative; line-height: 1.6; }
+    .reward-sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-sub-list li span { color: var(--accent-light); font-weight: 500; }
+    .padlet-box { background: linear-gradient(135deg, #201810, #120e1e); border: 1px solid #805030; border-radius: 8px; padding: 14px 16px; margin: 14px 0; }
+    .padlet-title { font-size: 13px; color: #e0a060; font-weight: 600; margin-bottom: 10px; }
+    .padlet-items { display: flex; flex-direction: column; gap: 6px; }
+    .padlet-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-main); }
+    .padlet-item-icon { font-size: 16px; flex-shrink: 0; }
+    .padlet-item-pts { color: #e0a060; font-weight: 600; margin-left: auto; white-space: nowrap; }
+    .cond-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+    .cond-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; margin-bottom: 10px; }
+    .cond-list { list-style: none; padding: 0; }
+    .cond-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-main); margin-bottom: 7px; line-height: 1.6; }
+    .cond-list li:last-child { margin-bottom: 0; }
+    .cond-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .cond-list li strong { color: var(--accent-light); }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(160,144,224,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(160,144,224,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(160,144,224,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(160,144,224,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">우리의 찬란한 앞날을</div>
+    <div class="sub">Hanaro of Legends · 커뮤니케이션-일반</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🌅</div>
+      <div class="phase-title">마지막 팀 미션의 시작</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡에서의 긴 여정이 <span class="highlight-warm">마무리를 향해 가고 있습니다.</span> 소환사님과 동료들이 함께한 시간 속에서, 수많은 도전과 성취가 있었고, 서로에게 의지하며 성장해왔습니다.</p>
+      <div class="final-banner">
+        <div class="final-icon">🌟</div>
+        <div class="final-title">마지막 팀 미션</div>
+        <div class="final-sub">협곡에서의 마지막 순간을 함께 기록하는<br>특별한 퀘스트</div>
+        <div class="final-stars">✦ ✦ ✦ ✦ ✦</div>
+      </div>
+      <p>이 퀘스트는 단순한 사진 촬영을 넘어, <span class="highlight">협곡에서의 마지막 순간을 함께 기록하고</span>, 앞으로의 여정을 더욱 뜻깊게 만들어 줄 것입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📸</div>
+      <div class="phase-title">그라운드 룰 앞에서 함께</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님이 이번 퀘스트에서 수행해야 할 임무는 <span class="highlight-warm">팀원들과 함께 협곡의 그라운드 룰 앞에서</span> 마지막 인증 사진을 남기는 것입니다.</p>
+      <p>그동안 팀원들과 함께한 시간을 되새기며, 이곳에서 맺은 인연을 사진으로 남겨주세요. <span class="highlight">한 팀도 빠짐없이, 모든 팀원들이 등장</span>해야 하며, 협곡에서 함께한 순간들을 하나의 추억으로 담아내야 합니다.</p>
+      <div class="info-box">
+        📌 인증 사진 조건: <span class="highlight">모든 팀원 등장</span> + <span class="highlight">그라운드 룰</span>이 사진에 포함되어야 합니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🎁</div>
+      <div class="phase-title">패들렛 추가 보상 안내</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>퀘스트를 완료한 소환사님께는 포인트가 지급됩니다. 하지만 여기서 끝이 아닙니다!</p>
+      <div class="padlet-box">
+        <div class="padlet-title">📌 패들렛 추가 보상</div>
+        <div class="padlet-items">
+          <div class="padlet-item">
+            <div class="padlet-item-icon">🖼️</div>
+            <div>패들렛에 사진 업로드 시</div>
+            <div class="padlet-item-pts">+30 포인트</div>
+          </div>
+          <div class="padlet-item">
+            <div class="padlet-item-icon">❤️</div>
+            <div>게시글 좋아요 1개 당</div>
+            <div class="padlet-item-pts">+5 포인트</div>
+          </div>
+          <div class="padlet-item">
+            <div class="padlet-item-icon">💬</div>
+            <div>댓글 5개 당</div>
+            <div class="padlet-item-pts">+5 포인트</div>
+          </div>
+        </div>
+      </div>
+      <p>협곡에서 <span class="highlight-warm">마지막까지 활발한 교류를 이어가며</span>, 가장 빛나는 순간을 기록해 보세요.</p>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">💫</div>
+      <div class="phase-title">협곡의 역사를 남겨라</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>이제, 소환사님의 팀과 함께 <span class="highlight-warm">마지막 인증 사진을 남길 시간</span>입니다. 협곡에서의 시간은 끝나가지만, 함께한 추억은 영원히 남을 것입니다.</p>
+      <p>이곳에서의 마지막 순간을 소중히 간직하며, <span class="highlight">여러분이 함께했던 협곡의 역사가 오래도록 기억</span>될 수 있도록 해주세요.</p>
+      <div class="mission-announce">
+        <div class="mission-announce-title">🌅 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">소환사님, 지금 바로<br>마지막 팀 미션을 시작하세요!<br><br>우리의 찬란한 앞날을 위하여 ✨</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 5 -->
+  <div class="page" id="page-4">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 달성 조건 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="cond-card">
+        <div class="cond-title">⚡ 미션 달성 조건</div>
+        <ul class="cond-list">
+          <li>팀원들과 <strong>그라운드 룰 앞에서 마지막 인증 사진</strong>을 찍어 보내주세요.</li>
+          <li>인증 사진에 <strong>모든 팀원들이 등장</strong>해야 합니다.</li>
+          <li><strong>패들렛에 업로드</strong>하면 추가 보상이 주어집니다.</li>
+        </ul>
+      </div>
+      <div class="cond-card">
+        <div class="cond-title">👥 대상</div>
+        <ul class="cond-list">
+          <li><strong>자신이 소속된 팀</strong></li>
+        </ul>
+      </div>
+      <hr class="divider">
+      <div class="reward-grid">
+        <div class="reward-card">
+          <div class="reward-icon">💰</div>
+          <div class="reward-info">
+            <div class="reward-label">기본 보상</div>
+            <div class="reward-value">300 포인트</div>
+          </div>
+        </div>
+        <div class="reward-card">
+          <div class="reward-icon">⭐</div>
+          <div class="reward-info">
+            <div class="reward-label">패들렛 추가 보상</div>
+            <ul class="reward-sub-list">
+              <li>인증사진 업로드 시 <span>+30 포인트</span></li>
+              <li>좋아요 1개 당 <span>+5 포인트</span></li>
+              <li>댓글 5개 당 <span>+5 포인트</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 5</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 5, labels = ['마지막 미션', '그라운드 룰', '패들렛 보상', '협곡의 역사', '달성 조건 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>
