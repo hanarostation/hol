@@ -21,7 +21,7 @@
     body {
       background: var(--green-dark);
       font-family: 'Segoe UI', sans-serif;
-      padding: 24px 16px;
+      padding: 16px;
     }
     .wrap {
       max-width: 760px;
@@ -153,7 +153,7 @@
       font-size: 15px;
       line-height: 1.85;
       color: var(--text-main);
-      min-height: 340px;
+      
     }
     .phase-body p { margin-bottom: 14px; }
     .phase-body p:last-child { margin-bottom: 0; }
@@ -394,7 +394,7 @@
           <div class="reward-label">제출 파일</div>
           <div class="reward-value">디지털 하나로 A 팀 .xlsx</div>
         </div>
-        <button onclick="forceDownload()" class="download-btn">⬇ 다운로드</button>
+        <button onclick="window.open('https://hanarostation.github.io/hol/files/team_A.xlsx')" class="download-btn">⬇ 다운로드</button>
       </div>
 
       <hr class="divider">
@@ -446,24 +446,6 @@
 </div>
 
 <script>
-  function forceDownload() {
-    const url = 'files/team_A.xlsx';
-    fetch(url)
-      .then(res => res.blob())
-      .then(blob => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'team_A.xlsx';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(a.href);
-      })
-      .catch(() => {
-        window.open(url, '_blank');
-      });
-  }
-
   const total = 3;
   let current = 0;
   const labels = ['배경 스토리', '자기소개 미션', '제출 & 보상'];
