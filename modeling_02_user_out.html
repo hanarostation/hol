@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>가구 매장 회원 이탈 분류 모델 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1a0f0a;
+      --panel: #231510;
+      --card: #2e1a12;
+      --border: #5a2e1a;
+      --accent: #c0451a;
+      --accent-dim: #8a3012;
+      --accent-light: #e86030;
+      --text-main: #f0d8c8;
+      --text-sub: #b08070;
+      --text-muted: #6a4030;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #120a06; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--bg); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--border); border-radius: 12px;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(200,70,30,0.1); box-shadow: 0 0 8px rgba(200,70,30,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(200,70,30,0.1) 0%, var(--panel) 100%);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-light);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: #e89060; background: rgba(200,70,30,0.1);
+      border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--panel); border: 1px solid var(--border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+
+    .info-box {
+      background: #120a06; border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.8;
+    }
+
+    .data-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+    }
+    .data-card-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    }
+    .data-card-title { font-size: 15px; font-weight: 500; color: var(--accent-light); }
+    .download-btn {
+      display: inline-flex; align-items: center;
+      background: rgba(200,70,30,0.1); border: 1px solid var(--accent-dim);
+      border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500;
+      padding: 5px 12px; white-space: nowrap; cursor: pointer;
+      transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .download-btn:hover { background: rgba(200,70,30,0.2); border-color: var(--accent-light); }
+
+    .var-list { list-style: none; padding: 0; margin: 8px 0; }
+    .var-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      padding: 7px 10px; border-radius: 6px;
+      font-size: 14px; color: var(--text-main);
+      border-bottom: 1px solid rgba(90,46,26,0.3);
+    }
+    .var-list li:last-child { border-bottom: none; }
+    .var-name { color: var(--accent-light); font-weight: 500; min-width: 140px; flex-shrink: 0; }
+    .var-desc { color: var(--text-sub); }
+
+    .target-badge {
+      display: inline-block; background: rgba(200,70,30,0.15);
+      border: 1px solid var(--accent); border-radius: 6px;
+      padding: 8px 12px; margin-top: 6px;
+      font-size: 14px; color: var(--accent-light);
+    }
+
+    .warn-box { background: #1a0808; border: 1px solid #5a2020; border-radius: 8px; padding: 14px 16px; margin: 12px 0; }
+    .warn-title { font-size: 13px; color: #e06050; font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .warn-item { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: #c08070; margin-bottom: 8px; line-height: 1.6; }
+    .warn-item:last-child { margin-bottom: 0; }
+    .warn-item::before { content: '⚠'; color: #e05050; flex-shrink: 0; }
+
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #120a06; border: 1px solid var(--border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(200,70,30,0.06); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500;
+      padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(200,70,30,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(200,70,30,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(200,70,30,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">가구 매장 회원 이탈 분류 모델</div>
+    <div class="sub">Hanaro of Legends · 모델링 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🧠</div>
+      <div class="phase-title">모델링 미션 안내</div>
+      <div class="phase-badge">Mission 02</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 하나로 협곡에서 <span class="highlight">데이터 과학의 핵심</span>을 다루는 새로운 퀘스트가 도착했습니다.</p>
+      <p>이번 미션은 가구 매장에서 관리하는 회원 데이터를 이용해 <span class="highlight">회원 탈퇴 여부를 예측</span>하고,<br>협곡의 고객 유지 전략을 설계하는 중요한 여정입니다.</p>
+      <p>가구 매장은 단순히 제품을 판매하는 공간을 넘어,<br>회원들의 생활과 밀접하게 연결된 서비스를 제공해야 지속적인 성장을 이룰 수 있습니다.</p>
+      <p>이번 퀘스트는 데이터를 통해 <span class="highlight">고객 이탈 가능성을 사전에 예측</span>하고,<br>이를 바탕으로 고객 관리 전략을 세우는 데 초점이 맞춰져 있습니다.</p>
+      <div class="info-box">
+        📌 <strong>제출 방식</strong><br><br>
+        · 학습 데이터로 모델을 먼저 생성한 뒤 <strong>파일로 저장</strong><br>
+        · 파일을 가져와 검증 데이터를 모델에 집어넣는 것까지 코드 작성<br>
+        · <strong>학습된 모델 파일</strong>과 <strong>검증 데이터 평가 코드 파일</strong> 두 가지를 제출
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📊</div>
+      <div class="phase-title">제공 데이터</div>
+      <div class="phase-badge">Data</div>
+    </div>
+    <div class="phase-body">
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">📂 학습 데이터 — User_Out_Train.csv</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/User_Out_Train.csv')">⬇ 다운로드</button>
+        </div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px;">설명 변수</p>
+        <ul class="var-list">
+          <li><span class="var-name">연령대</span><span class="var-desc">고객 연령대</span></li>
+          <li><span class="var-name">성별</span><span class="var-desc">고객 성별</span></li>
+          <li><span class="var-name">지역</span><span class="var-desc">고객 거주 지역</span></li>
+          <li><span class="var-name">가입경로</span><span class="var-desc">회원 가입 경로</span></li>
+          <li><span class="var-name">마케팅 동의</span><span class="var-desc">마케팅 수신 동의 여부</span></li>
+          <li><span class="var-name">회원구분</span><span class="var-desc">회원 등급 구분</span></li>
+          <li><span class="var-name">총 구매금액</span><span class="var-desc">누적 총 구매금액</span></li>
+          <li><span class="var-name">실결제금액</span><span class="var-desc">실제 결제 금액</span></li>
+          <li><span class="var-name">매장 방문수</span><span class="var-desc">매장 방문 횟수</span></li>
+          <li><span class="var-name">적립금</span><span class="var-desc">보유 적립금</span></li>
+          <li><span class="var-name">사용 적립금</span><span class="var-desc">사용한 적립금</span></li>
+        </ul>
+        <p style="font-size:13px; color:var(--text-muted); margin: 12px 0 6px;">목표 변수</p>
+        <div class="target-badge">🎯 탈퇴여부 (T 탈퇴 / F 정상) — 회원 탈퇴 여부</div>
+      </div>
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-card-title">📂 검증 데이터 — User_Out_Test.csv</div>
+          <button class="download-btn" onclick="window.open('https://hanarostation.github.io/hol/files/User_Out_Test.csv')">⬇ 다운로드</button>
+        </div>
+        <p style="font-size:14px; color:var(--text-sub); line-height:1.7;">모델 성능 평가에 사용되는 검증 데이터입니다. 학습에 절대 사용하지 마세요!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">⚠️</div>
+      <div class="phase-title">모델링 주의사항</div>
+      <div class="phase-badge">Notice</div>
+    </div>
+    <div class="phase-body">
+      <p>위에 설명 변수에 제시된 데이터는 <span class="highlight">반드시 모델에 포함</span>되어야 하는 데이터입니다.</p>
+      <p>전처리가 필요하다면, <span class="highlight">파이프라인이나 별도의 전처리 함수</span>를 구성해 처리해야겠죠?</p>
+      <hr class="divider">
+      <div class="warn-box">
+        <div class="warn-title">🚫 반드시 지켜주세요!</div>
+        <div class="warn-item">학습 데이터에서 성능이 100%가 나오는 <strong>과적합</strong>이 발생하면 점수를 얻을 수 없습니다.</div>
+        <div class="warn-item">그랜드 마스터가 스크립트를 받아서 실행했을 때 <strong>작동이 되지 않는다면</strong> 점수를 얻을 수 없습니다.</div>
+        <div class="warn-item"><strong>GPT, Claude 등 생성형 AI 사용은 금지</strong>합니다. 여러분들의 역량 강화를 위해 AI 사용 없이 수행해주세요.</div>
+      </div>
+      <div class="info-box">
+        📎 모델링이 완료되면, 해당 모델에 대한 <span class="highlight">도식화를 PPT로 작성</span>해 보내주세요.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 데이터의 힘을 통해 <span class="highlight">회원 이탈 문제를 해결</span>하고,<br>협곡의 지속 가능한 성장을 위한 전략을 제시하세요.</p>
+      <p>준비되셨다면, 지금 바로 도전에 나서십시오.<br><span class="highlight">하나로 협곡은 당신의 데이터 통찰과 혁신을 기다리고 있습니다!</span></p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>모델은 <strong>Model_Mission2.sav</strong> 파일 (또는 Model_Mission2.h5) 로 저장</li>
+            <li>Test Set에 생성된 모델이 <strong>오류 없이 작동</strong></li>
+            <li>모델 파일과 Train/Test Set 성능 지표를 <strong>.ipynb 파일로 제출</strong></li>
+            <li>모델 도식화 <strong>PPT로 작성</strong>하여 송부</li>
+            <li>과적합 발생 / 스크립트 미작동 시 <strong>점수 제공 불가</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">500 포인트</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-info">
+          <div class="reward-label">추가 보상</div>
+          <ul class="condition-list">
+            <li>분류 모델의 경우, Test Set의 <strong>F1 Score</strong>가 추가 점수로 반영</li>
+            <li>회귀 모델의 경우, Test Set의 <strong>R²</strong>가 추가 점수로 반영</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+
+  <div class="footer">
+    ✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦
+  </div>
+</div>
+
+<script>
+  const total = 4;
+  let current = 0;
+  const labels = ['미션 소개', '제공 데이터', '주의사항', '제출 & 보상'];
+
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1;
+    dot.title = labels[i];
+    dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) {
+      const line = document.createElement('div');
+      line.className = 'step-line';
+      stepsEl.appendChild(line);
+    }
+  }
+
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => {
+      d.classList.remove('active', 'done');
+      if (i < current) d.classList.add('done');
+      else if (i === current) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach((l, i) => {
+      l.classList.toggle('done', i < current);
+    });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nextBtn = document.getElementById('btn-next');
+    nextBtn.disabled = current === total - 1;
+    nextBtn.textContent = current === total - 1 ? '완료! ✦' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+
+  function move(dir) {
+    const next = current + dir;
+    if (next >= 0 && next < total) goTo(next);
+  }
+</script>
+</body>
+</html>
