@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>체력과 건강도 함께 라면 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1e1a2e; --panel: #26203a; --card: #2e2840; --border: #3d3560;
+      --accent: #7060c0; --accent-dim: #503a90; --accent-light: #a090e0;
+      --text-main: #e8e0ff; --text-sub: #9080c0; --text-muted: #4a3870;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #120e1e; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(160,144,224,0.1); box-shadow: 0 0 8px rgba(160,144,224,0.25); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 28px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(160,144,224,0.1) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #c0b0f0; background: rgba(160,144,224,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .highlight-green { color: #70c880; font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #120e1e; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #0e1e10, #120e1e); border: 1px solid #406040; border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: #70c880; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .health-banner { background: linear-gradient(135deg, #0e1e10, #120e1e); border: 1px solid #406040; border-radius: 10px; padding: 22px 16px; margin: 14px 0; text-align: center; }
+    .health-icon { font-size: 48px; line-height: 1; margin-bottom: 10px; }
+    .health-title { font-size: 19px; font-weight: 700; color: #70c880; margin-bottom: 8px; letter-spacing: 1px; }
+    .health-keywords { display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .health-keyword { background: rgba(80,180,100,0.12); border: 1px solid #305040; border-radius: 20px; padding: 4px 14px; font-size: 12px; color: #70c880; font-weight: 600; }
+    .health-sub { font-size: 13px; color: #406050; line-height: 1.7; margin-top: 10px; }
+    .progress-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin: 14px 0; }
+    .progress-title { font-size: 13px; color: var(--accent-light); font-weight: 500; margin-bottom: 10px; }
+    .progress-dots { display: flex; gap: 6px; justify-content: center; }
+    .progress-dot { flex: 1; height: 36px; border-radius: 6px; background: rgba(80,180,100,0.08); border: 1px dashed #305040; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #406050; font-weight: 600; }
+    .cond-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+    .cond-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 1px; font-weight: 500; margin-bottom: 10px; }
+    .cond-list { list-style: none; padding: 0; }
+    .cond-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-main); margin-bottom: 7px; line-height: 1.6; }
+    .cond-list li:last-child { margin-bottom: 0; }
+    .cond-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .cond-list li strong { color: var(--accent-light); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #120e1e; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .reward-sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .reward-sub-list li { font-size: 14px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .reward-sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-sub-list li span { color: var(--accent-light); font-weight: 500; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(160,144,224,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(160,144,224,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(160,144,224,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(160,144,224,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">체력과 건강도 함께 라면</div>
+    <div class="sub">Hanaro of Legends · 커뮤니케이션-일반</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">💪</div>
+      <div class="phase-title">협곡의 건강을 지켜라!</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡은 다양한 소환사들이 모여 각자의 강점과 재능을 발휘하며 협력하는 공간입니다. 그러나 최근 협곡 내에서 <span class="highlight-green">소환사들의 체력 저하와 건강 문제</span>에 대한 우려가 제기되고 있습니다.</p>
+      <div class="health-banner">
+        <div class="health-icon">🏃</div>
+        <div class="health-title">체력과 건강도 함께 라면</div>
+        <div class="health-keywords">
+          <span class="health-keyword">💪 체력 단련</span>
+          <span class="health-keyword">🤝 함께</span>
+          <span class="health-keyword">❤️ 건강</span>
+          <span class="health-keyword">⚡ 활력</span>
+        </div>
+        <div class="health-sub">건강한 소환사들이 협곡의 미래를 만들어 갑니다</div>
+      </div>
+      <p>협곡의 장로들은 이번 퀘스트를 통해 소환사들 간의 관계를 강화하고, <span class="highlight-green">협곡 전체에 건강한 에너지를 전파</span>하는 데 목적을 두고 있습니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">🌿</div>
+      <div class="phase-title">함께할 때 더 강해진다</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡 내에서는 소환사들이 서로를 격려하고 지원하며 건강을 함께 챙길 때, <span class="highlight-green">협곡의 에너지가 더 강력해집니다.</span></p>
+      <p>운동은 단순히 체력을 단련하는 활동이 아닙니다. 운동은 협곡 내 소환사들이 서로를 이해하고 협력하며, <span class="highlight">새로운 목표를 공유하는 과정에서 강력한 유대를 형성</span>할 수 있는 기회입니다.</p>
+      <div class="info-box">
+        💡 <span class="highlight-green">'함께'</span>라는 단어는 이번 퀘스트의 핵심입니다.<br>
+        당신은 혼자가 아니라, 협곡 내 다양한 소환사들과 함께 건강한 삶을 만들어가는 과정에서 자신을 넘어서는 성취를 경험할 것입니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🌱</div>
+      <div class="phase-title">건강한 협곡을 만드는 첫걸음</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡은 당신의 <span class="highlight-green">건강과 유대감을 응원</span>합니다. 이제 운동을 통해 새로운 목표를 달성하며, 협곡의 분위기를 한층 더 밝게 만들어 보세요.</p>
+      <p>운동을 함께하는 과정에서 소환사들은 서로를 더 깊이 이해하고, <span class="highlight">협력의 가치를 다시 한번 깨닫게</span> 됩니다. 이번 퀘스트는 건강한 협곡을 만드는 첫걸음입니다.</p>
+      <p>협곡의 모든 소환사가 건강을 챙기며, 함께 운동하는 순간, <span class="highlight-green">협곡은 더욱 강하고 화합된 공동체</span>로 거듭날 것입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🔥</div>
+      <div class="phase-title">지금 바로 움직이세요!</div>
+      <div class="phase-badge">Communication</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 이제 협곡 내 다른 소환사들과 함께 <span class="highlight-green">건강한 삶을 만들어가는 여정</span>을 시작하세요. 운동을 통해 체력과 건강을 함께 챙기며, 협곡 전체에 활력을 불어넣을 수 있습니다.</p>
+      <div class="progress-card">
+        <div class="progress-title">📅 5일 운동 인증 현황</div>
+        <div class="progress-dots">
+          <div class="progress-dot">1일</div>
+          <div class="progress-dot">2일</div>
+          <div class="progress-dot">3일</div>
+          <div class="progress-dot">4일</div>
+          <div class="progress-dot">5일</div>
+        </div>
+      </div>
+      <div class="mission-announce">
+        <div class="mission-announce-title">💪 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">준비되셨다면, 소환사님, 이제 움직이세요.<br>협곡은 당신의 열정과 건강을 기다리고 있습니다!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 5 -->
+  <div class="page" id="page-4">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 달성 조건 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="cond-card">
+        <div class="cond-title">⚡ 미션 달성 조건</div>
+        <ul class="cond-list">
+          <li>자신을 제외한 <strong>다른 소환사와 함께 운동한 사진</strong>을 인증 사진으로 보내주세요.</li>
+          <li>총 <strong>5회 이상</strong> 보내야 합니다. <strong>(같은 날에 찍은 5장은 무효입니다.)</strong></li>
+          <li>최소 <strong>2명 이상의 인원</strong>이 인증 사진에 나와야 합니다.</li>
+        </ul>
+      </div>
+      <div class="cond-card">
+        <div class="cond-title">👥 대상</div>
+        <ul class="cond-list">
+          <li><strong>전체</strong></li>
+        </ul>
+      </div>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">기본 보상</div>
+          <div class="reward-value">100 포인트</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-info">
+          <div class="reward-label">추가 보상</div>
+          <ul class="reward-sub-list">
+            <li>추가 인원 당 <span>+10 포인트</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 5</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 5, labels = ['퀘스트 소개', '함께의 힘', '건강한 협곡', '지금 움직여라', '달성 조건 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>
