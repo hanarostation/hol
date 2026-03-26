@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>점수 랭킹</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #FFD700;
+    --silver: #C0C0C0;
+    --bronze: #CD7F32;
+    --bg: #0a0a12;
+    --card: #12121e;
+    --card2: #1a1a2e;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --text: #e8e8f0;
+    --text-dim: #888899;
+    --border: rgba(108,99,255,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG decoration */
+  body::before {
+    content: '';
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 80% 10%, rgba(108,99,255,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 80%, rgba(255,101,132,0.08) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 40px 20px; position: relative; z-index: 1; }
+
+  /* HEADER */
+  .header { text-align: center; margin-bottom: 48px; }
+
+  .title-wrap { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; position: relative; }
+  .title-wrap:hover .edit-hint { opacity: 1; }
+
+  #site-title {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(28px, 6vw, 52px);
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #fff 30%, var(--accent) 70%, var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: opacity 0.2s;
+  }
+
+  .edit-icon { font-size: 18px; opacity: 0.4; transition: opacity 0.2s; }
+  .title-wrap:hover .edit-icon { opacity: 0.9; }
+
+  #title-input {
+    display: none;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: clamp(24px, 5vw, 44px);
+    letter-spacing: 2px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--accent);
+    color: #fff;
+    text-align: center;
+    outline: none;
+    width: 100%;
+    max-width: 500px;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  /* TOOLBAR */
+  .toolbar {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    justify-content: center; margin-bottom: 36px;
+  }
+
+  .btn {
+    padding: 9px 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--card2);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); }
+  .btn.primary:hover { background: #8078ff; }
+  .btn.danger { border-color: rgba(255,101,132,0.3); }
+  .btn.danger:hover { background: var(--accent2); border-color: var(--accent2); }
+
+  /* SORT BAR */
+  .sort-bar {
+    display: flex; gap: 8px; margin-bottom: 16px; align-items: center;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .sort-btn {
+    padding: 4px 12px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent; color: var(--text-dim);
+    font-size: 12px; cursor: pointer; transition: all 0.15s;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+  .sort-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* RANKING LIST */
+  #ranking-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .rank-card {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 18px;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+    animation: slideIn 0.3s ease both;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .rank-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .rank-card:hover { background: var(--card2); transform: translateX(4px); border-color: rgba(108,99,255,0.4); }
+  .rank-card:hover::before { opacity: 1; }
+
+  .rank-card.rank-1 { border-color: rgba(255,215,0,0.35); background: rgba(255,215,0,0.04); }
+  .rank-card.rank-1::before { background: var(--gold); opacity: 1; }
+  .rank-card.rank-2 { border-color: rgba(192,192,192,0.3); background: rgba(192,192,192,0.03); }
+  .rank-card.rank-2::before { background: var(--silver); opacity: 1; }
+  .rank-card.rank-3 { border-color: rgba(205,127,50,0.3); background: rgba(205,127,50,0.04); }
+  .rank-card.rank-3::before { background: var(--bronze); opacity: 1; }
+
+  .rank-badge {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 22px;
+    width: 40px; text-align: center; flex-shrink: 0;
+    color: var(--text-dim);
+  }
+  .rank-card.rank-1 .rank-badge { color: var(--gold); }
+  .rank-card.rank-2 .rank-badge { color: var(--silver); }
+  .rank-card.rank-3 .rank-badge { color: var(--bronze); }
+
+  .avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--card2);
+    border: 2px solid var(--border);
+    object-fit: cover;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; overflow: hidden;
+  }
+  .avatar:hover { border-color: var(--accent); }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+  .rank-info { flex: 1; min-width: 0; }
+  .student-name {
+    font-weight: 700; font-size: 15px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .student-name:hover { color: var(--accent); }
+  .name-edit-icon { font-size: 11px; opacity: 0; transition: opacity 0.15s; }
+  .student-name:hover .name-edit-icon { opacity: 0.7; }
+
+  .name-input-field {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Noto Sans KR', sans-serif;
+    outline: none;
+    width: 140px;
+  }
+
+  .score-bar-wrap { margin-top: 5px; display: flex; align-items: center; gap: 8px; }
+  .score-bar-bg { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; }
+  .score-bar-fill {
+    height: 100%; border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .rank-card.rank-1 .score-bar-fill { background: linear-gradient(90deg, #FFD700, #ffaa00); }
+  .rank-card.rank-2 .score-bar-fill { background: linear-gradient(90deg, #aaa, #ddd); }
+  .rank-card.rank-3 .score-bar-fill { background: linear-gradient(90deg, #CD7F32, #e8a060); }
+
+  .score-display {
+    display: flex; align-items: baseline; gap: 4px;
+    flex-shrink: 0;
+  }
+  .score-num {
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 26px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .score-num:hover { color: var(--accent); }
+  .score-unit { font-size: 12px; color: var(--text-dim); }
+  .score-input {
+    width: 70px;
+    font-family: 'Black Han Sans', sans-serif;
+    font-size: 22px;
+    background: var(--card2);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    color: #fff;
+    text-align: center;
+    outline: none;
+    padding: 2px 6px;
+  }
+
+  .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .icon-btn {
+    width: 30px; height: 30px;
+    border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-dim);
+    cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .icon-btn.del:hover { background: var(--accent2); border-color: var(--accent2); }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-dim); display: none;
+  }
+  .empty-state.show { display: block; }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* STATS */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; margin-bottom: 32px;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px;
+    text-align: center;
+  }
+  .stat-label { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+  .stat-value { font-family: 'Black Han Sans', sans-serif; font-size: 22px; color: var(--accent); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    width: 90%; max-width: 400px;
+    animation: popIn 0.2s ease;
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .modal h3 { font-family: 'Black Han Sans', sans-serif; font-size: 20px; margin-bottom: 20px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-field label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 6px; }
+  .modal-field input[type="text"], .modal-field input[type="number"] {
+    width: 100%; padding: 10px 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; color: #fff;
+    font-family: 'Noto Sans KR', sans-serif; font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal-field input:focus { border-color: var(--accent); }
+  .img-preview {
+    width: 70px; height: 70px; border-radius: 50%;
+    background: var(--bg); border: 2px dashed var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; margin: 10px auto 0; cursor: pointer;
+    overflow: hidden; transition: border-color 0.2s;
+  }
+  .img-preview:hover { border-color: var(--accent); }
+  .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions .btn { flex: 1; justify-content: center; }
+
+  /* FILE INPUT HIDDEN */
+  input[type="file"] { display: none; }
+
+  /* SEARCH */
+  .search-wrap { position: relative; margin-bottom: 16px; }
+  .search-wrap input {
+    width: 100%; padding: 10px 14px 10px 38px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif; font-size: 13px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-dim); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(60px);
+    background: var(--accent); color: #fff; padding: 10px 20px;
+    border-radius: 8px; font-size: 13px; z-index: 200;
+    transition: transform 0.3s; pointer-events: none;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 540px) {
+    .stats-bar { grid-template-columns: repeat(3, 1fr); }
+    .rank-card { padding: 12px 12px; gap: 10px; }
+    .score-num { font-size: 20px; }
+    .rank-badge { font-size: 18px; width: 30px; }
+    .avatar { width: 40px; height: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title-wrap" id="title-wrap" onclick="startEditTitle()">
+      <span id="site-title">우리 반 점수 랭킹 🏆</span>
+      <span class="edit-icon">✏️</span>
+    </div>
+    <input type="text" id="title-input" placeholder="제목 입력..." onblur="saveTitle()" onkeydown="if(event.key==='Enter')saveTitle()">
+    <div class="subtitle">클릭하면 점수를 수정할 수 있어요 · 이름·사진도 클릭하면 편집 가능</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">👥 학생 수</div>
+      <div class="stat-value" id="stat-count">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">📊 평균 점수</div>
+      <div class="stat-value" id="stat-avg">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🥇 최고 점수</div>
+      <div class="stat-value" id="stat-max">-</div>
+    </div>
+  </div>
+
+  <!-- SEARCH + SORT -->
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="학생 이름 검색..." oninput="renderList()">
+  </div>
+  <div class="sort-bar">
+    정렬:
+    <button class="sort-btn active" id="sort-score" onclick="setSort('score')">점수 높은순</button>
+    <button class="sort-btn" id="sort-score-asc" onclick="setSort('score-asc')">점수 낮은순</button>
+    <button class="sort-btn" id="sort-name" onclick="setSort('name')">이름순</button>
+  </div>
+
+  <!-- RANKING LIST -->
+  <div id="ranking-list"></div>
+  <div class="empty-state" id="empty-state">
+    <div class="empty-icon">🎒</div>
+    <div>아직 학생이 없어요!</div>
+    <div style="font-size:13px; margin-top:8px; color: var(--text-dim)">아래 [학생 추가] 버튼을 눌러보세요</div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar" style="margin-top:32px; padding-top:24px; border-top:1px solid var(--border);">
+    <button class="btn primary" onclick="openAddModal()">＋ 학생 추가</button>
+    <button class="btn" onclick="addSampleStudents()">📋 샘플 데이터</button>
+    <button class="btn" onclick="exportData()">💾 저장(CSV)</button>
+    <button class="btn" onclick="document.getElementById('import-file').click()">📂 불러오기</button>
+    <button class="btn danger" onclick="clearAll()">🗑 전체 삭제</button>
+    <input type="file" id="import-file" accept=".json" onchange="importData(event)">
+  </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h3 id="modal-title">학생 추가</h3>
+    <div class="modal-field">
+      <label>이름</label>
+      <input type="text" id="m-name" placeholder="예: 홍길동" maxlength="20">
+    </div>
+    <div class="modal-field">
+      <label>점수 (0 ~ 100)</label>
+      <input type="number" id="m-score" placeholder="예: 95">
+    </div>
+    <div class="modal-field">
+      <label>프로필 사진 <span style="color:var(--text-dim);font-size:11px">(선택사항)</span></label>
+      <div class="img-preview" id="img-preview" onclick="document.getElementById('avatar-file').click()">📷</div>
+      <input type="file" id="avatar-file" accept="image/*" onchange="previewAvatar(event)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">취소</button>
+      <button class="btn primary" onclick="saveStudent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+let students = [];
+let sortMode = 'score';
+let editingId = null;
+let avatarBase64 = '';
+
+// ─── DATA ───────────────────────────────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+
+function save() {
+  localStorage.setItem('ranking_students', JSON.stringify(students));
+  localStorage.setItem('ranking_title', document.getElementById('site-title').textContent);
+}
+
+function load() {
+  const s = localStorage.getItem('ranking_students');
+  if (s) students = JSON.parse(s);
+  const t = localStorage.getItem('ranking_title');
+  if (t) document.getElementById('site-title').textContent = t;
+}
+
+// ─── TITLE ──────────────────────────────────────────────────────────────────
+function startEditTitle() {
+  const el = document.getElementById('site-title');
+  const input = document.getElementById('title-input');
+  input.value = el.textContent;
+  el.style.display = 'none';
+  input.style.display = 'block';
+  input.focus();
+  document.querySelector('.edit-icon').style.display = 'none';
+}
+function saveTitle() {
+  const el = document.getElementById('site-title');
+  const input = document.getElementById('title-input');
+  const v = input.value.trim();
+  if (v) el.textContent = v;
+  el.style.display = '';
+  input.style.display = 'none';
+  document.querySelector('.edit-icon').style.display = '';
+  document.title = el.textContent;
+  save();
+}
+
+// ─── MODAL ──────────────────────────────────────────────────────────────────
+function openAddModal(id) {
+  editingId = id || null;
+  avatarBase64 = '';
+  const modal = document.getElementById('modal-overlay');
+  const preview = document.getElementById('img-preview');
+  modal.classList.add('open');
+  document.getElementById('modal-title').textContent = id ? '학생 편집' : '학생 추가';
+  if (id) {
+    const s = students.find(x => x.id === id);
+    document.getElementById('m-name').value = s.name;
+    document.getElementById('m-score').value = s.score;
+    if (s.avatar) {
+      preview.innerHTML = `<img src="${s.avatar}">`;
+      avatarBase64 = s.avatar;
+    } else {
+      preview.innerHTML = '📷';
+    }
+  } else {
+    document.getElementById('m-name').value = '';
+    document.getElementById('m-score').value = '';
+    preview.innerHTML = '📷';
+  }
+  setTimeout(() => document.getElementById('m-name').focus(), 100);
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editingId = null; avatarBase64 = '';
+}
+document.getElementById('modal-overlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+function previewAvatar(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    avatarBase64 = ev.target.result;
+    document.getElementById('img-preview').innerHTML = `<img src="${avatarBase64}">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveStudent() {
+  const name = document.getElementById('m-name').value.trim();
+  const score = parseInt(document.getElementById('m-score').value);
+  if (!name) { showToast('이름을 입력하세요!'); return; }
+  if (isNaN(score)) { showToast('점수를 입력하세요!'); return; }
+
+  if (editingId) {
+    const idx = students.findIndex(x => x.id === editingId);
+    students[idx] = { ...students[idx], name, score, avatar: avatarBase64 || students[idx].avatar };
+  } else {
+    students.push({ id: uid(), name, score, avatar: avatarBase64 });
+  }
+  save();
+  renderList();
+  closeModal();
+  showToast(editingId ? '수정 완료!' : '학생 추가 완료!');
+}
+
+// ─── INLINE EDIT ─────────────────────────────────────────────────────────────
+function startEditScore(id) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  const display = card.querySelector('.score-display');
+  const s = students.find(x => x.id === id);
+  display.innerHTML = `<input class="score-input" id="si-${id}" type="number" value="${s.score}">`;
+  const inp = document.getElementById(`si-${id}`);
+  inp.focus(); inp.select();
+  inp.onblur = () => saveInlineScore(id);
+  inp.onkeydown = e => { if (e.key === 'Enter') saveInlineScore(id); if (e.key === 'Escape') renderList(); };
+}
+function saveInlineScore(id) {
+  const inp = document.getElementById(`si-${id}`);
+  if (!inp) return;
+  const v = parseInt(inp.value);
+  if (!isNaN(v)) {
+    students.find(x => x.id === id).score = v;
+    save();
+  }
+  renderList();
+}
+
+function startEditName(id) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  const nameEl = card.querySelector('.student-name');
+  const s = students.find(x => x.id === id);
+  nameEl.innerHTML = `<input class="name-input-field" id="ni-${id}" value="${s.name}" maxlength="20">`;
+  const inp = document.getElementById(`ni-${id}`);
+  inp.focus(); inp.select();
+  inp.onblur = () => saveInlineName(id);
+  inp.onkeydown = e => { if (e.key === 'Enter') saveInlineName(id); if (e.key === 'Escape') renderList(); };
+}
+function saveInlineName(id) {
+  const inp = document.getElementById(`ni-${id}`);
+  if (!inp) return;
+  const v = inp.value.trim();
+  if (v) students.find(x => x.id === id).name = v;
+  save();
+  renderList();
+}
+
+function changeAvatar(id) {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      students.find(x => x.id === id).avatar = ev.target.result;
+      save(); renderList();
+      showToast('사진 변경 완료!');
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function deleteStudent(id) {
+  if (!confirm('이 학생을 삭제할까요?')) return;
+  students = students.filter(x => x.id !== id);
+  save(); renderList();
+  showToast('삭제 완료!');
+}
+
+// ─── SORT / FILTER ───────────────────────────────────────────────────────────
+function setSort(mode) {
+  sortMode = mode;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sort-' + mode).classList.add('active');
+  renderList();
+}
+
+function getSorted(arr) {
+  const a = [...arr];
+  if (sortMode === 'score') return a.sort((a,b) => b.score - a.score);
+  if (sortMode === 'score-asc') return a.sort((a,b) => a.score - b.score);
+  if (sortMode === 'name') return a.sort((a,b) => a.name.localeCompare(b.name, 'ko'));
+  return a;
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function renderList() {
+  const list = document.getElementById('ranking-list');
+  const empty = document.getElementById('empty-state');
+  const query = document.getElementById('search-input').value.toLowerCase().trim();
+  const maxScore = students.length ? Math.max(...students.map(s => s.score)) : 100;
+
+  // stats
+  document.getElementById('stat-count').textContent = students.length;
+  if (students.length) {
+    const avg = (students.reduce((a,b) => a + b.score, 0) / students.length).toFixed(1);
+    document.getElementById('stat-avg').textContent = avg;
+    document.getElementById('stat-max').textContent = Math.max(...students.map(s=>s.score));
+  } else {
+    document.getElementById('stat-avg').textContent = '-';
+    document.getElementById('stat-max').textContent = '-';
+  }
+
+  const sorted = getSorted(students);
+  const filtered = query ? sorted.filter(s => s.name.toLowerCase().includes(query)) : sorted;
+
+  if (!filtered.length) {
+    list.innerHTML = '';
+    empty.classList.add('show');
+    return;
+  }
+  empty.classList.remove('show');
+
+  // rank by score (always by score desc, regardless of sort)
+  const scoreSorted = [...students].sort((a,b) => b.score - a.score);
+
+  list.innerHTML = filtered.map((s, i) => {
+    const rank = scoreSorted.findIndex(x => x.id === s.id) + 1;
+    const rankClass = rank <= 3 ? `rank-${rank}` : '';
+    const rankLabel = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+    const pct = maxScore > 0 ? (s.score / maxScore * 100).toFixed(1) : 0;
+    const avatarHtml = s.avatar
+      ? `<img src="${s.avatar}">`
+      : `<span style="font-size:20px">${s.name.charAt(0)}</span>`;
+
+    return `
+    <div class="rank-card ${rankClass}" data-id="${s.id}" style="animation-delay:${i*0.04}s">
+      <div class="rank-badge">${rankLabel}</div>
+      <div class="avatar" onclick="changeAvatar('${s.id}')" title="클릭해서 사진 변경">${avatarHtml}</div>
+      <div class="rank-info">
+        <div class="student-name" onclick="startEditName('${s.id}')">
+          ${s.name} <span class="name-edit-icon">✏️</span>
+        </div>
+        <div class="score-bar-wrap">
+          <div class="score-bar-bg">
+            <div class="score-bar-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="score-display">
+        <span class="score-num" onclick="startEditScore('${s.id}')" title="클릭해서 점수 수정">${s.score}</span>
+        <span class="score-unit">점</span>
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn" onclick="openAddModal('${s.id}')" title="편집">✏️</button>
+        <button class="icon-btn del" onclick="deleteStudent('${s.id}')" title="삭제">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── BULK ─────────────────────────────────────────────────────────────────────
+function clearAll() {
+  if (!confirm('전체 학생 데이터를 삭제할까요?')) return;
+  students = []; save(); renderList();
+  showToast('전체 삭제 완료!');
+}
+
+function addSampleStudents() {
+  const names = ['김민준','이서연','박지호','최수아','정예준','윤하은','장도윤','임소율','한지우','오시우','송나연','권이준','황다은','안준서','백채원'];
+  names.forEach(n => {
+    students.push({ id: uid(), name: n, score: Math.floor(Math.random()*51)+50, avatar: '' });
+  });
+  save(); renderList();
+  showToast(`샘플 ${names.length}명 추가 완료!`);
+}
+
+function exportData() {
+  const title = document.getElementById('site-title').textContent;
+  const rows = [['타이틀명', '이름', '점수'], ...students.map(s => [title, s.name, s.score])];
+  const csv = '\uFEFF' + rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ranking_data.csv';
+  a.click();
+  showToast('CSV 저장 완료!');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.students) { students = data.students; }
+      if (data.title) document.getElementById('site-title').textContent = data.title;
+      save(); renderList();
+      showToast('불러오기 완료!');
+    } catch { showToast('파일 형식이 올바르지 않아요.'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'n' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openAddModal(); }
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+load();
+renderList();
+</script>
+</body>
+</html>
