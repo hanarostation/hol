@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>국제 분쟁 위기 감지 시스템 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --green-dark: #050d1a;
+      --green-mid: #0A1428;
+      --green-panel: #0D1B33;
+      --green-border: #7A5C1E;
+      --mint: #C89B3C;
+      --mint-dim: #a07830;
+      --mint-dark: #7A5C1E;
+      --text-main: #F0E6CA;
+      --text-sub: #a08c5b;
+      --text-muted: #5a4a2a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--green-dark); font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--green-mid); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--green-border);
+      border-radius: 12px; position: relative; overflow: hidden;
+    }
+    .wrap::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 220px; height: 220px;
+      border: 2px solid rgba(45,232,160,0.06); border-radius: 4px;
+      transform: rotate(20deg); pointer-events: none;
+    }
+    .wrap::after {
+      content: ''; position: absolute; top: -20px; right: -20px;
+      width: 180px; height: 180px;
+      border: 1px solid rgba(45,232,160,0.04); border-radius: 4px;
+      transform: rotate(20deg); pointer-events: none;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--green-border); padding-bottom: 18px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 10px; color: var(--mint); margin-bottom: 6px; opacity: 0.8; }
+    .title { font-size: 22px; font-weight: 500; color: var(--mint); letter-spacing: 1px; margin-bottom: 4px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--green-border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--mint); color: var(--mint); background: rgba(45,232,160,0.08); box-shadow: 0 0 10px rgba(45,232,160,0.2); }
+    .step-dot.done { border-color: var(--mint-dark); color: var(--mint-dim); background: rgba(45,232,160,0.05); }
+    .step-line { width: 40px; height: 1px; background: var(--green-border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: var(--mint-dark); }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(45,232,160,0.08) 0%, var(--green-panel) 100%);
+      border: 1px solid var(--green-border); border-left: 3px solid var(--mint);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--mint); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: var(--mint-dim);
+      background: rgba(45,232,160,0.08); border: 1px solid var(--mint-dark);
+      border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--green-panel); border: 1px solid var(--green-border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--mint); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--green-border); margin: 16px 0; opacity: 0.6; }
+    .quote-box {
+      background: rgba(45,232,160,0.04); border-left: 3px solid var(--mint);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 15px; color: var(--mint-dim); font-style: italic; line-height: 1.7;
+    }
+    .info-box {
+      background: rgba(4,26,15,0.8); border-left: 3px solid var(--mint-dim);
+      border-radius: 0 8px 8px 0; padding: 13px 15px; margin: 12px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.75;
+    }
+    .condition-box {
+      background: rgba(45,232,160,0.05); border: 1px solid var(--mint-dark);
+      border-radius: 8px; padding: 14px 16px; margin: 12px 0;
+    }
+    .condition-title { font-size: 13px; color: var(--mint); font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .condition-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-item::before { content: '▶'; color: var(--mint-dim); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-item strong { color: var(--text-main); }
+    .sns-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .sns-tag {
+      background: rgba(45,232,160,0.08); border: 1px solid var(--mint-dark);
+      border-radius: 20px; padding: 4px 14px;
+      font-size: 13px; color: var(--mint-dim); font-weight: 600;
+    }
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: rgba(2,15,8,0.8); border: 1px solid var(--green-border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--mint-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .reward-sub { font-size: 13px; color: var(--text-sub); margin-top: 4px; line-height: 1.6; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(45,232,160,0.06); border: 1px solid var(--green-border);
+      border-radius: 6px; color: var(--mint-dim);
+      font-size: 14px; font-weight: 500; padding: 9px 22px;
+      cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(45,232,160,0.12); border-color: var(--mint-dark); color: var(--mint); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(45,232,160,0.1); border-color: var(--mint-dark); color: var(--mint); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(45,232,160,0.18); border-color: var(--mint); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--green-border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">국제 분쟁 위기 감지 시스템</div>
+    <div class="sub">Hanaro of Legends · 팀 엑티브</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🌐</div>
+      <div class="phase-title">협곡에 긴급 정보가 전달되었습니다</div>
+      <div class="phase-badge">배경 스토리</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 하나로 협곡에 <span class="highlight">긴급한 소식</span>이 전해졌습니다. 최근 협곡 밖 세계 곳곳에서 다양한 분쟁과 사건들이 동시다발적으로 발생하고 있으며, 그 여파가 협곡의 경제와 금융, 그리고 사회 전반에까지 영향을 미치기 시작했습니다.</p>
+      <p>협곡의 상인들은 <span class="highlight">환율 변동에 혼란</span>을 겪고 있고, 전략가들은 글로벌 정세 변화에 따라 새로운 대응 전략을 고민하고 있습니다.</p>
+      <div class="quote-box">
+        "협곡은 더 이상 외부 세계의 흐름을 뒤늦게 파악해서는 안 된다는 결론에 도달하게 됩니다."
+      </div>
+      <p>이에 협곡 중앙 정보국은 소환사님께 특별한 임무를 부여합니다. 퀘스트의 이름은 바로 <span class="highlight">"국제 분쟁 위기 감지 시스템"</span>. 이 임무는 단순한 데이터 수집이 아니라, <span class="highlight">협곡 전체의 의사결정을 좌우할 수 있는 정보 체계를 구축하는 전략적 프로젝트</span>입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📡</div>
+      <div class="phase-title">SNS 추적 & 외신 기사 수집</div>
+      <div class="phase-badge">퀘스트 배경</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님과 팀은 먼저 세계 곳곳의 정보를 가장 빠르게 전달하는 <span class="highlight">SNS 미디어 채널</span>을 추적해야 합니다.</p>
+      <div class="sns-tags">
+        <span class="sns-tag">𝕏 X (Twitter)</span>
+        <span class="sns-tag">▶ YouTube</span>
+        <span class="sns-tag">📸 Instagram</span>
+      </div>
+      <p>다양한 플랫폼 속에서 실시간으로 뉴스 속보를 전달하는 채널들을 선별하고, 그 신뢰도와 영향력을 평가해야 합니다. 단순히 많은 정보를 가져오는 것이 아니라, <span class="highlight">정확하고 검증 가능한 정보만을 걸러내는 능력</span>이 요구됩니다.</p>
+      <p>이후, 협곡 정보국이 특히 주목하고 있는 <span class="highlight">중동 지역의 분쟁 및 사건 사고</span>에 대한 외신 기사들을 집중적으로 수집해야 합니다. 소환사님은 이 데이터를 바탕으로, 특정 지역에서 발생하는 사건들을 <span class="highlight">위험도 기준에 따라 등급화</span>해야 합니다.</p>
+      <div class="info-box">
+        💡 어떤 지역은 경계 수준인지, 어떤 지역은 즉각 대응이 필요한 위험 단계인지 판단하는 과정은 협곡의 미래 전략과 직결됩니다.
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🗂️</div>
+      <div class="phase-title">퀘스트 세부사항 & 시스템 설계</div>
+      <div class="phase-badge">미션 안내</div>
+    </div>
+    <div class="phase-body">
+      <div class="condition-box">
+        <div class="condition-title">⚡ 수행 항목</div>
+        <div class="condition-item">SNS 미디어를 통해 <strong>(X, 유튜브, 인스타그램 등) 뉴스 속보 채널 정보 확인</strong></div>
+        <div class="condition-item">주요 분쟁 및 사건 사고에 대한 <strong>외신 기사 수집</strong></div>
+        <div class="condition-item">수집된 기사들을 활용, <strong>특정 지역의 분쟁 및 사건을 등급화</strong></div>
+        <div class="condition-item">해당 정보들을 실시간으로 전달하고 <strong>사건의 정보를 제공하는 서비스 구성</strong></div>
+        <div class="condition-item">서비스에 필요한 <strong>데이터 맵 (특성 요인도, 데이터 수집성 평가표, 변수정의서) 구성</strong></div>
+        <div class="condition-item">서비스에 대한 <strong>프로토타입 구성</strong></div>
+      </div>
+      <div class="quote-box">
+        "수집된 정보와 분석 결과를 바탕으로, 협곡 내 모든 소환사들이 한눈에 상황을 파악할 수 있는 실시간 정보 전달 시스템을 구축해야 합니다."
+      </div>
+      <p>사용자 인터페이스, 정보 전달 방식, 경고 시스템까지 포함된 이 설계는 <span class="highlight">협곡의 정보 체계를 한 단계 끌어올리는</span> 중요한 결과물이 될 것입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 달성 조건 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="condition-box">
+        <div class="condition-title">📋 미션 달성 조건</div>
+        <div class="condition-item">주요 분쟁 및 사건 사고에 대한 <strong>외신 기사 수집</strong> (시간 / 지역 / 국가 / 채널 / 계정명 / 내용)</div>
+        <div class="condition-item">SNS 미디어를 통해 <strong>(X, 유튜브, 인스타그램 등) 뉴스 속보 채널 정보 확인</strong></div>
+        <div class="condition-item">기사 내용에 따른 <strong>사건 심각성 등급화</strong></div>
+        <div class="condition-item">데이터 정의서에 <strong>특성 요인도 및 데이터 수집성 평가표</strong> 포함</div>
+        <div class="condition-item">데이터 정의서에 <strong>변수 정의서</strong> 포함</div>
+        <div class="condition-item">데이터 정의서에 <strong>수집 데이터 활용 프로토타입 아이디어 리서치</strong> 포함</div>
+        <div class="condition-item">데이터 정의서에 <strong>프로토타입 유저 페르소나</strong> 포함</div>
+        <div class="condition-item">데이터 정의서에 <strong>프로토타입 요구사항 명세서, 플로우 차트 및 화면 기능 설계서</strong> 포함</div>
+        <div class="condition-item">⏰ 프로젝트 기한: <strong>4월 3일 까지</strong></div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="reward-card">
+        <div class="reward-icon">🎯</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 대상</div>
+          <div class="reward-value">자신이 소속된 팀</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">기본 보상</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-info">
+          <div class="reward-label">추가 보상</div>
+          <div class="reward-value">데이터 1,000건 당 +5점</div>
+          <div class="reward-sub">· 10개 Columns 기준<br>· 중복 데이터 불가 (무효 처리)<br>· 최대 100,000건 / 최대 500점</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 4;
+  let current = 0;
+  const labels = ['배경 스토리', 'SNS & 기사 수집', '세부사항 & 설계', '달성 조건 & 보상'];
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active', 'done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '완료! ✦' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>

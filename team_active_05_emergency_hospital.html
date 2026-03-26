@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>응급 진료 병의원 안내 서비스 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --green-dark: #050d1a;
+      --green-mid: #0A1428;
+      --green-panel: #0D1B33;
+      --green-border: #7A5C1E;
+      --mint: #C89B3C;
+      --mint-dim: #a07830;
+      --mint-dark: #7A5C1E;
+      --text-main: #F0E6CA;
+      --text-sub: #a08c5b;
+      --text-muted: #5a4a2a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--green-dark); font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap {
+      max-width: 760px; margin: 0 auto;
+      background: var(--green-mid); color: var(--text-main);
+      padding: 24px 24px 20px;
+      border: 1.5px solid var(--green-border);
+      border-radius: 12px; position: relative; overflow: hidden;
+    }
+    .wrap::before {
+      content: ''; position: absolute; top: -40px; right: -40px;
+      width: 220px; height: 220px;
+      border: 2px solid rgba(45,232,160,0.06); border-radius: 4px;
+      transform: rotate(20deg); pointer-events: none;
+    }
+    .wrap::after {
+      content: ''; position: absolute; top: -20px; right: -20px;
+      width: 180px; height: 180px;
+      border: 1px solid rgba(45,232,160,0.04); border-radius: 4px;
+      transform: rotate(20deg); pointer-events: none;
+    }
+    .header { text-align: center; border-bottom: 1px solid var(--green-border); padding-bottom: 18px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 10px; color: var(--mint); margin-bottom: 6px; opacity: 0.8; }
+    .title { font-size: 22px; font-weight: 500; color: var(--mint); letter-spacing: 1px; margin-bottom: 4px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot {
+      width: 34px; height: 34px; border: 1.5px solid var(--green-border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 500; color: var(--text-muted);
+      cursor: pointer; transition: all .2s; flex-shrink: 0;
+    }
+    .step-dot.active { border-color: var(--mint); color: var(--mint); background: rgba(45,232,160,0.08); box-shadow: 0 0 10px rgba(45,232,160,0.2); }
+    .step-dot.done { border-color: var(--mint-dark); color: var(--mint-dim); background: rgba(45,232,160,0.05); }
+    .step-line { width: 40px; height: 1px; background: var(--green-border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: var(--mint-dark); }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header {
+      display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(45,232,160,0.08) 0%, var(--green-panel) 100%);
+      border: 1px solid var(--green-border); border-left: 3px solid var(--mint);
+      border-radius: 8px 8px 0 0; padding: 13px 16px;
+    }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--mint); flex: 1; }
+    .phase-badge {
+      font-size: 12px; color: var(--mint-dim);
+      background: rgba(45,232,160,0.08); border: 1px solid var(--mint-dark);
+      border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+    }
+    .phase-body {
+      background: var(--green-panel); border: 1px solid var(--green-border);
+      border-top: none; border-radius: 0 0 8px 8px;
+      padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main);
+    }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--mint); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--green-border); margin: 16px 0; opacity: 0.6; }
+    .quote-box {
+      background: rgba(45,232,160,0.04); border-left: 3px solid var(--mint);
+      border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0;
+      font-size: 15px; color: var(--mint-dim); font-style: italic; line-height: 1.7;
+    }
+    .info-box {
+      background: rgba(4,26,15,0.8); border-left: 3px solid var(--mint-dim);
+      border-radius: 0 8px 8px 0; padding: 13px 15px; margin: 12px 0;
+      font-size: 14px; color: var(--text-sub); line-height: 1.75;
+    }
+    .link-box {
+      background: rgba(2,15,8,0.8); border: 1px solid var(--mint-dark);
+      border-radius: 8px; padding: 12px 15px; margin: 12px 0;
+      font-size: 13px; color: var(--mint-dim); word-break: break-all; line-height: 1.6;
+    }
+    .link-box a { color: var(--mint); text-decoration: none; }
+    .link-box a:hover { text-decoration: underline; }
+    .condition-box {
+      background: rgba(45,232,160,0.05); border: 1px solid var(--mint-dark);
+      border-radius: 8px; padding: 14px 16px; margin: 12px 0;
+    }
+    .condition-title { font-size: 13px; color: var(--mint); font-weight: 500; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .condition-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6;
+    }
+    .condition-item::before { content: '▶'; color: var(--mint-dim); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-item strong { color: var(--text-main); }
+    .reward-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: rgba(2,15,8,0.8); border: 1px solid var(--green-border);
+      border-radius: 8px; padding: 13px 15px; margin: 8px 0;
+    }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--mint-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .reward-sub { font-size: 13px; color: var(--text-sub); margin-top: 4px; line-height: 1.6; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn {
+      background: rgba(45,232,160,0.06); border: 1px solid var(--green-border);
+      border-radius: 6px; color: var(--mint-dim);
+      font-size: 14px; font-weight: 500; padding: 9px 22px;
+      cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(45,232,160,0.12); border-color: var(--mint-dark); color: var(--mint); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(45,232,160,0.1); border-color: var(--mint-dark); color: var(--mint); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(45,232,160,0.18); border-color: var(--mint); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--green-border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">응급 진료 병의원 안내 서비스</div>
+    <div class="sub">Hanaro of Legends · 팀 엑티브</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🏥</div>
+      <div class="phase-title">협곡에 긴급 미션이 도착했습니다</div>
+      <div class="phase-badge">배경 스토리</div>
+    </div>
+    <div class="phase-body">
+      <p>소환사님, 하나로 협곡에 <span class="highlight">중요한 미션</span>이 도착했습니다. 이번 퀘스트는 전국 비상 진료 병의원 안내 서비스를 구축하여, 협곡의 모든 주민들이 응급 상황에서도 <span class="highlight">신속하고 정확하게 의료 지원</span>을 받을 수 있도록 돕는 데 초점이 맞춰져 있습니다.</p>
+      <div class="quote-box">
+        "응급 상황은 예고 없이 찾아옵니다. 협곡의 미래를 위해, 당신과 팀의 노력과 통찰이 절실히 필요합니다."
+      </div>
+      <p>특히 밤늦은 시간이나 공휴일에 병원을 찾는 일은 더 큰 어려움을 수반합니다. 이런 문제를 해결하기 위해, 이번 미션에서는 <span class="highlight">전국 비상 진료 병의원 데이터를 수집</span>하고 이를 기반으로 한 즉각적인 병의원 안내 서비스를 구성하는 것이 목표입니다.</p>
+      <p>협곡 주민들이 손쉽게 의료기관 정보를 찾고, 필요한 의료 지원을 받을 수 있도록 돕는 것이 이번 퀘스트의 핵심입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📊</div>
+      <div class="phase-title">데이터 수집과 분석</div>
+      <div class="phase-badge">퀘스트 배경</div>
+    </div>
+    <div class="phase-body">
+      <p>당신의 여정은 <span class="highlight">e-gen 공시 정보</span>에서 비상 진료 병의원 데이터를 수집하는 것으로 시작됩니다. 시·군·구 정보를 포함해 병원 명, 진료 과목, 주소 등을 체계적으로 정리하여 데이터베이스를 구성하세요.</p>
+      <div class="info-box">
+        💡 이 데이터는 협곡 내에서 <span class="highlight">응급 의료 지원 시스템을 설계</span>하는 데 중요한 초석이 될 것입니다. 데이터의 정확성과 체계적인 정리는 이번 퀘스트의 성공을 좌우할 핵심 요소입니다.
+      </div>
+      <p>수집된 데이터는 단순한 목록 이상의 가치를 지닙니다. 데이터를 분석하여 <span class="highlight">특성 요인도와 데이터 수집성 평가표</span>를 작성하고, 변수 정의서를 통해 각 데이터의 역할과 중요성을 명확히 파악하세요.</p>
+      <p>이러한 작업은 데이터의 의미를 발견하고, 이를 기반으로 한 <span class="highlight">사용자 친화적인 서비스를 설계</span>하는 데 필수적입니다.</p>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🗺️</div>
+      <div class="phase-title">서비스 설계 & 퀘스트 세부사항</div>
+      <div class="phase-badge">미션 안내</div>
+    </div>
+    <div class="phase-body">
+      <p>서비스 설계는 단순히 정보를 나열하는 것을 넘어섭니다. 수집된 데이터를 바탕으로, 사용자가 빠르고 쉽게 의료 정보를 검색하고 활용할 수 있는 <span class="highlight">프로토타입을 개발</span>하세요.</p>
+      <div class="condition-box">
+        <div class="condition-title">⚡ 수행 항목</div>
+        <div class="condition-item">전국 비상 진료 병의원 안내에 공시된 <strong>병원 정보 수집</strong></div>
+        <div class="condition-item">지역 및 진료과목에 대한 데이터 수집 <strong>(시 군 구 정보 / 의료 기관 / 진료 과목 / 병원 명 / 주소)</strong></div>
+        <div class="condition-item">환자들이 비상 진료를 받고자 할 때, <strong>빠르게 병의원을 파악할 수 있는 서비스 구성</strong></div>
+        <div class="condition-item"><strong>특성요인도 / 변수정의서 / 서비스에 대한 프로토타입 구성</strong> 필수</div>
+      </div>
+      <div class="link-box">
+        🔗 데이터 출처: <a href="https://www.e-gen.or.kr/egen/holiday_medical.do?emergencyViewYn=Y" target="_blank">https://www.e-gen.or.kr/egen/holiday_medical.do?emergencyViewYn=Y</a>
+      </div>
+      <div class="quote-box">
+        "이번 퀘스트는 단순한 도전이 아니라, 협곡 주민들의 안전과 건강을 위한 중요한 여정입니다. 하나로 협곡은 당신을 믿습니다!"
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 4 -->
+  <div class="page" id="page-3">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 달성 조건 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="condition-box">
+        <div class="condition-title">📋 미션 달성 조건</div>
+        <div class="condition-item">전국 비상 진료 병의원 안내에 공시된 <strong>병원 정보 수집</strong></div>
+        <div class="condition-item">지역 및 진료과목에 대한 데이터 수집 <strong>(시 군 구 정보 / 의료 기관 / 진료 과목 / 병원 명 / 주소)</strong></div>
+        <div class="condition-item">수집된 데이터를 바탕으로 <strong>비상 진료 정보 제공 서비스 구성</strong></div>
+        <div class="condition-item">데이터 정의서에 <strong>특성 요인도 및 데이터 수집성 평가표</strong> 포함</div>
+        <div class="condition-item">데이터 정의서에 <strong>변수 정의서</strong> 포함</div>
+        <div class="condition-item">데이터 정의서에 <strong>수집 데이터 활용 프로토타입 아이디어 리서치</strong> 포함</div>
+        <div class="condition-item">데이터 정의서에 <strong>프로토타입 유저 페르소나</strong> 포함</div>
+        <div class="condition-item">데이터 정의서에 <strong>프로토타입 요구사항 명세서, 플로우 차트 및 화면 기능 설계서</strong> 포함</div>
+        <div class="condition-item">⏰ 프로젝트 기한: <strong>4월 3일 까지</strong></div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="reward-card">
+        <div class="reward-icon">🎯</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 대상</div>
+          <div class="reward-value">자신이 소속된 팀</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">기본 보상</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">⭐</div>
+        <div class="reward-info">
+          <div class="reward-label">추가 보상</div>
+          <div class="reward-value">데이터 1,000건 당 +5점</div>
+          <div class="reward-sub">· 10개 Columns 기준<br>· 중복 데이터 불가 (무효 처리)<br>· 최대 100,000건 / 최대 500점</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 4</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 4;
+  let current = 0;
+  const labels = ['배경 스토리', '데이터 수집', '서비스 설계', '달성 조건 & 보상'];
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active', 'done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '완료! ✦' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>
