@@ -237,7 +237,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
     <div class="section-title">🛡️ 팀 통계</div>
     <div class="mstats-grid" id="teamStatsGrid"></div>
 
-    <div class="section-title">📋 미션 현황</div>
+    <div class="section-title">📋 가장 최근 수행 미션</div>
     <div class="mission-grid" id="missionGrid"></div>
 
     <div class="footer">
@@ -357,22 +357,28 @@ function buildSeason(rows,CN,CC,CCAT,CM,CS,CE){
     p.barPct=Math.round((p.total/maxScore)*100);
   });
 
+  const CDATE2 = Object.keys(rows[0]||{}).find(x=>x.includes('일자'))||'인증 일자';
   const mm={};
   rows.forEach(r=>{
     const mission=String(r[CM]||'').trim();
     const cat=detectCat(r[CCAT]);
     const call=String(r[CC]||r[CN]||'').trim();
     const extra=Number(r[CE]||0);
+    const dateStr=String(r[CDATE2]||'').trim().slice(0,19);
     if(!mission) return;
-    if(!mm[mission]) mm[mission]={mission,cat,participants:[]};
+    if(!mm[mission]) mm[mission]={mission,cat,participants:[],latestDate:''};
     mm[mission].participants.push({call,extra});
+    if(dateStr > mm[mission].latestDate) mm[mission].latestDate = dateStr;
   });
   Object.values(mm).forEach(m=>{
     const seen={};
     m.participants=m.participants.filter(p=>seen[p.call]?false:(seen[p.call]=true));
   });
 
-  return {ranking, missions:Object.values(mm), maxScore, teamScores, teamCatScores};
+  // 가장 최근 수행 미션 순으로 정렬
+  const missions = Object.values(mm).sort((a,b)=>b.latestDate.localeCompare(a.latestDate));
+
+  return {ranking, missions, maxScore, teamScores, teamCatScores};
 }
 
 // ── photo store ──
@@ -571,8 +577,21 @@ function renderMissions(missions,totalPlayers){
     const chips=allDone
       ?`<span class="participant-chip">${m.participants.length}명 전원 완료 · 기본점수</span>`
       :m.participants.map(p=>`<span class="participant-chip ${p.extra>0?'has-bonus':''}">${p.call}${p.extra>0?' +'+p.extra:''}</span>`).join('');
+    // 날짜 파싱
+    let dateLabel = '';
+    if(m.latestDate){
+      const [dp='',tp=''] = m.latestDate.split(' ');
+      const [y,mo,dy] = dp.split('-').map(Number);
+      const [hh=0,mm2=0] = tp.split(':').map(Number);
+      const ampm = hh<12?'오전':'오후';
+      const h12  = hh%12||12;
+      dateLabel = `${y}. ${mo}. ${dy}. ${ampm} ${h12}시${mm2>0?' '+mm2+'분':''}`;
+    }
     return `<div class="mission-card ${catCardCls(m.cat)}">
-      <div class="mission-type">${catLabel(m.cat)}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div class="mission-type" style="margin-bottom:0">${catLabel(m.cat)}</div>
+        ${dateLabel?`<div style="font-size:10px;color:var(--text-sub);letter-spacing:.5px">${dateLabel}</div>`:''}
+      </div>
       <div class="mission-name">${m.mission}</div>
       <div class="mission-participants">${chips}</div>
     </div>`;
