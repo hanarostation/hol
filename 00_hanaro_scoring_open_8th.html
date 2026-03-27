@@ -447,8 +447,12 @@ function renderMissionStats(overall){
   </div>`).join('');
   const card1=`<div class="mstats-card"><div class="mstats-title">카테고리별 획득 점수</div><div class="donut-wrap">${donut}<div class="donut-legend">${legend}</div></div></div>`;
 
+  // card2: 팀 액티브 제외한 미션별 점수
   const mScores={};
-  ranking.forEach(p=>Object.entries(p.missions||{}).forEach(([m,info])=>{mScores[m]=(mScores[m]||0)+info.score;}));
+  ranking.forEach(p=>Object.entries(p.missions||{}).forEach(([m,info])=>{
+    if(info.cat==='team') return; // 팀 액티브 제외
+    mScores[m]=(mScores[m]||0)+info.score;
+  }));
   const mEntries=Object.entries(mScores).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const mMax=mEntries[0]?.[1]||1;
   const colorMap={team:'#0AC8B9',comm:'#9B59B6',priv:'#E74C3C',etc:'#C89B3C'};
@@ -458,30 +462,38 @@ function renderMissionStats(overall){
     return `<div class="hbar-item"><div class="hbar-header"><div class="hbar-label">${name}</div><div class="hbar-val">${score.toLocaleString()}</div></div>
       <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round(score/mMax*100)}%;background:${color}"></div></div></div>`;
   }).join('');
-  const card2=`<div class="mstats-card"><div class="mstats-title">미션별 총 획득 점수 (TOP 10)</div><div class="hbar-list">${hbars}</div></div>`;
+  const card2=`<div class="mstats-card"><div class="mstats-title">미션별 획득 점수 (팀 액티브 제외)</div><div class="hbar-list">${hbars||'<div style="color:var(--text-sub);font-size:12px">데이터 없음</div>'}</div></div>`;
 
+  // card3: TOP5 소환사의 카테고리별 점수 시각화
   const top5=ranking.slice(0,5);
-  const maxTop=top5[0]?.total||1;
-  const topItems=top5.map((p,i)=>{
-    const medals=['🥇','🥈','🥉','④','⑤'];
-    return `<div class="top-item">
-      <div class="top-rank">${medals[i]}</div>
-      <div class="top-photo"><img src="${BASE_IMG+'player_'+encodeURIComponent(p.call)+'.png'}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="top-photo-ph" style="display:none">${p.call.slice(0,2)}</div></div>
-      <div class="top-name">${p.call}</div>
-      <div class="top-bar-wrap"><div class="top-bar-bg"><div class="top-bar-fill" style="width:${Math.round(p.total/maxTop*100)}%"></div></div></div>
-      <div class="top-score">${p.total.toLocaleString()}</div>
+  const catColors={team:'#0AC8B9',comm:'#9B59B6',priv:'#E74C3C'};
+  const catLabels={team:'팀 액티브',comm:'커뮤니케이션',priv:'프라이빗'};
+  const allCatMax=Math.max(...top5.flatMap(p=>Object.values(p.cats)),1);
+  const medals=['🥇','🥈','🥉','④','⑤'];
+
+  const top5rows=top5.map((p,i)=>{
+    const imgUrl=BASE_IMG+'player_'+encodeURIComponent(p.call)+'.png';
+    const catBars=Object.entries(p.cats).filter(([,v])=>v>0).map(([c,v])=>`
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+        <div style="font-size:10px;color:${catColors[c]};width:70px;flex-shrink:0">${catLabels[c]||c}</div>
+        <div style="flex:1;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${Math.round(v/allCatMax*100)}%;background:${catColors[c]};border-radius:3px"></div>
+        </div>
+        <div style="font-family:'Black Han Sans',sans-serif;font-size:11px;color:${catColors[c]};width:40px;text-align:right">${v.toLocaleString()}</div>
+      </div>`).join('');
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="display:flex;align-items:center;gap:8px;width:110px;flex-shrink:0">
+        <span style="font-size:14px">${medals[i]}</span>
+        <div style="width:30px;height:30px;border-radius:50%;overflow:hidden;background:#0A1428;flex-shrink:0;position:relative">
+          <img src="${imgUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
+        </div>
+        <div style="font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--text-main)">${p.call}</div>
+      </div>
+      <div style="flex:1">${catBars}</div>
     </div>`;
   }).join('');
-  const n=ranking.length||1;
-  const catParts={team:0,comm:0,priv:0};
-  ranking.forEach(p=>Object.entries(p.cats).forEach(([c,v])=>{if(v>0&&catParts[c]!==undefined)catParts[c]++;}));
-  const partBars=catDefs.map(cd=>{
-    const pct=Math.round(catParts[cd.key]/n*100);
-    return `<div class="hbar-item"><div class="hbar-header"><div class="hbar-label">${cd.label} 참여율</div><div class="hbar-val" style="color:${cd.color}">${pct}%</div></div>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${cd.color}"></div></div></div>`;
-  }).join('');
-  const card3=`<div class="mstats-card"><div class="mstats-title">TOP 5 소환사</div><div class="top-list">${topItems}</div>
-    <div style="margin-top:20px"><div class="mstats-title">카테고리 참여율</div><div class="hbar-list">${partBars}</div></div></div>`;
+
+  const card3=`<div class="mstats-card"><div class="mstats-title">TOP 5 소환사 카테고리 분포</div>${top5rows}</div>`;
 
   return card1+card2+card3;
 }
