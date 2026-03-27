@@ -283,12 +283,21 @@ function catCardCls(c){return {team:'team',comm:'comm',priv:'priv',model:'model'
 function buildState(rows){
   const C = k => Object.keys(rows[0]||{}).find(x=>x.includes(k))||k;
   const CN=C('이름'), CC=C('콜네임'), CCAT=C('분류'), CM=C('미션명'),
-        CS=C('획득점수'), CE=C('추가점수'), CSEA=C('시즌');
+        CS=C('획득점수'), CE=C('추가점수'), CSEA=C('시즌'), CDATE=C('일자');
 
   const seasons=[...new Set(rows.map(r=>String(r[CSEA]||'시즌1')))].sort();
   const bySeasonData={};
   seasons.forEach(s=>{ bySeasonData[s]=buildSeason(rows.filter(r=>String(r[CSEA]||'시즌1')===s),CN,CC,CCAT,CM,CS,CE); });
   const overall=buildSeason(rows,CN,CC,CCAT,CM,CS,CE);
+
+  // 데이터에서 가장 마지막 인증 일자 추출
+  let latestDate = null;
+  rows.forEach(r=>{
+    const raw = String(r[CDATE]||'').trim();
+    if(!raw || raw==='-') return;
+    const d = new Date(raw);
+    if(!isNaN(d) && (!latestDate || d > latestDate)) latestDate = d;
+  });
 
   return {
     seasons, bySeasonData, overall,
@@ -296,6 +305,7 @@ function buildState(rows){
     totalMissions: overall.missions.length,
     totalCerts: rows.length,
     totalScore: overall.ranking.reduce((a,p)=>a+p.total,0),
+    latestDate,
   };
 }
 
@@ -568,12 +578,12 @@ let state=null, activeSeason=null;
 
 function render(){
   if(!state) return;
-  const now=new Date();
-  const today=now.toLocaleDateString('ko-KR');
-  const h=now.getHours();
-  const m=now.getMinutes();
-  const timeStr=`${h<12?'오전':'오후'} ${h%12||12}시${m>0?' '+m+'분':''}`;
-  const dateTime=`최종 업데이트 : ${today} ${timeStr}`;
+  const d = state.latestDate || new Date();
+  const today = d.toLocaleDateString('ko-KR');
+  const h = d.getHours();
+  const m = d.getMinutes();
+  const timeStr = `${h<12?'오전':'오후'} ${h%12||12}시${m>0?' '+m+'분':''}`;
+  const dateTime = `최종 업데이트 : ${today} ${timeStr}`;
   document.getElementById('headerBadge').textContent=activeSeason?`HOL · ${activeSeason}`:'HOL';
   document.getElementById('headerInfo').textContent=`${dateTime} · 총 ${state.totalPlayers}명의 소환사`;
   document.getElementById('footerDate').textContent=`· ${dateTime}`;
@@ -581,7 +591,7 @@ function render(){
   document.getElementById('statMissions').textContent=state.totalMissions;
   document.getElementById('statCerts').textContent=state.totalCerts.toLocaleString();
   document.getElementById('statTotal').textContent=state.totalScore.toLocaleString();
-  document.getElementById('leaderboard').innerHTML=renderLeaderboard(state.overall.ranking);
+  document.getElementById('leaderboard').innerHTML=renderLeaderboard(state.bySeasonData[activeSeason]?.ranking||state.overall.ranking);
 
   document.getElementById('seasonTabs').innerHTML=state.seasons.map(s=>
     `<div class="season-tab ${s===activeSeason?'active':''}" data-season="${s}">${s}</div>`).join('');
