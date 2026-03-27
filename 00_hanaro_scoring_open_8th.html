@@ -293,17 +293,20 @@ function buildState(rows){
 }
 
 function buildSeason(rows,CN,CC,CCAT,CM,CS,CE){
+  const CT=Object.keys(rows[0]||{}).find(x=>x.includes('팀'))||'팀';
   const pm={};
   rows.forEach(r=>{
     const name=String(r[CN]||'').trim();
     const call=String(r[CC]||name).trim();
+    const team=String(r[CT]||'').trim();
     const cat=detectCat(r[CCAT]);
     const mission=String(r[CM]||'').trim();
     const score=Number(r[CS]||0);
     const extra=Number(r[CE]||0);
     if(!name) return;
-    if(!pm[name]) pm[name]={name,call,total:0,cats:{team:0,comm:0,priv:0},missions:{}};
+    if(!pm[name]) pm[name]={name,call,team,total:0,cats:{team:0,comm:0,priv:0},missions:{}};
     pm[name].call=call;
+    pm[name].team=team;
     pm[name].total+=score;
     pm[name].cats[cat]=(pm[name].cats[cat]||0)+score;
     if(mission){
@@ -311,6 +314,15 @@ function buildSeason(rows,CN,CC,CCAT,CM,CS,CE){
       pm[name].missions[mission].score+=score;
       pm[name].missions[mission].extra+=extra;
     }
+  });
+
+  // Team total scores
+  const teamScores={};
+  const teamCatScores={};
+  Object.values(pm).forEach(p=>{
+    teamScores[p.team]=(teamScores[p.team]||0)+p.total;
+    if(!teamCatScores[p.team]) teamCatScores[p.team]={team:0,comm:0,priv:0};
+    Object.entries(p.cats).forEach(([c,v])=>{ if(teamCatScores[p.team][c]!==undefined) teamCatScores[p.team][c]+=v; });
   });
 
   const ranking=Object.values(pm).sort((a,b)=>b.total-a.total);
@@ -337,7 +349,7 @@ function buildSeason(rows,CN,CC,CCAT,CM,CS,CE){
     m.participants=m.participants.filter(p=>seen[p.call]?false:(seen[p.call]=true));
   });
 
-  return {ranking, missions:Object.values(mm), maxScore};
+  return {ranking, missions:Object.values(mm), maxScore, teamScores, teamCatScores};
 }
 
 // ── photo store ──
@@ -377,7 +389,7 @@ function renderLeaderboard(ranking){
     return `<div class="lb-row ${i<3?'rank-'+(i+1):''}" style="animation-delay:${Math.min(i*.05,.4)}s">
       <div class="rank-badge">${i<3?icons[i]:i+1}</div>
       ${playerPhotoEl(p.call)}
-      <div><div class="player-callname">${p.call}</div><div class="player-realname">${p.name}</div></div>
+      <div><div class="player-callname">${p.call}</div><div class="player-realname">${p.team||p.name}</div></div>
       <div class="mission-bars">${bars}</div>
       <div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${p.barPct}%"></div></div></div>
       <div class="total-score">${p.total.toLocaleString()} <span>pt</span></div>
@@ -406,45 +418,40 @@ function renderTier(ranking){
 }
 
 function renderMissionStats(overall){
-  const {ranking,missions}=overall;
-  const catScore={team:0,comm:0,priv:0};
-  ranking.forEach(p=>Object.entries(p.cats).forEach(([c,v])=>{if(catScore[c]!==undefined)catScore[c]+=v;}));
-  const catTotal=Object.values(catScore).reduce((a,b)=>a+b,0)||1;
+  const {ranking,missions,teamScores,teamCatScores}=overall;
   const catDefs=[{key:'team',label:'팀 액티브',color:'#0AC8B9'},{key:'comm',label:'커뮤니케이션',color:'#9B59B6'},{key:'priv',label:'프라이빗',color:'#E74C3C'}];
-
-  const R=52,cx=60,cy=60,stroke=14,circ=2*Math.PI*R;
-  let offset=0,segs='';
-  catDefs.forEach(cd=>{
-    const dash=(catScore[cd.key]/catTotal)*circ;
-    segs+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${cd.color}" stroke-width="${stroke}" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" opacity=".85"/>`;
-    offset+=dash;
-  });
-  const donut=`<svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">
-    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="${stroke}"/>
-    ${segs}
-    <text x="${cx}" y="${cy-6}" text-anchor="middle" fill="#C8AA6E" font-family="Black Han Sans" font-size="13">${((catScore.team/catTotal)*100).toFixed(0)}%</text>
-    <text x="${cx}" y="${cy+10}" text-anchor="middle" fill="#A0B4CC" font-family="Noto Sans KR" font-size="9">팀 미션</text>
-  </svg>`;
-  const legend=catDefs.map(cd=>`<div class="donut-legend-item">
-    <div class="donut-dot" style="background:${cd.color}"></div>
-    <div class="donut-legend-label">${cd.label}</div>
-    <div class="donut-legend-val">${catScore[cd.key].toLocaleString()}<span class="donut-legend-pct">(${((catScore[cd.key]/catTotal)*100).toFixed(1)}%)</span></div>
-  </div>`).join('');
-  const card1=`<div class="mstats-card"><div class="mstats-title">카테고리별 획득 점수</div><div class="donut-wrap">${donut}<div class="donut-legend">${legend}</div></div></div>`;
-
-  const mScores={};
-  ranking.forEach(p=>Object.entries(p.missions||{}).forEach(([m,info])=>{mScores[m]=(mScores[m]||0)+info.score;}));
-  const mEntries=Object.entries(mScores).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const mMax=mEntries[0]?.[1]||1;
   const colorMap={team:'#0AC8B9',comm:'#9B59B6',priv:'#E74C3C',etc:'#C89B3C'};
-  const hbars=mEntries.map(([name,score])=>{
-    const m=missions.find(r=>r.mission===name);
-    const color=colorMap[m?.cat||'etc'];
-    return `<div class="hbar-item"><div class="hbar-header"><div class="hbar-label">${name}</div><div class="hbar-val">${score.toLocaleString()}</div></div>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round(score/mMax*100)}%;background:${color}"></div></div></div>`;
-  }).join('');
-  const card2=`<div class="mstats-card"><div class="mstats-title">미션별 총 획득 점수 (TOP 10)</div><div class="hbar-list">${hbars}</div></div>`;
+  const teamColors=['#FFD700','#0AC8B9','#9B59B6','#E74C3C','#E67E22','#27AE60'];
 
+  // ── Card 1: 팀별 총 획득 점수 (수평 바) ──
+  const teamEntries=Object.entries(teamScores).sort((a,b)=>b[1]-a[1]);
+  const teamMax=teamEntries[0]?.[1]||1;
+  const teamBars=teamEntries.map(([tname,score],i)=>{
+    const color=teamColors[i%teamColors.length];
+    return `<div class="hbar-item">
+      <div class="hbar-header"><div class="hbar-label" style="color:${color};font-weight:700">${tname}</div><div class="hbar-val">${score.toLocaleString()}</div></div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round(score/teamMax*100)}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+  const card1=`<div class="mstats-card"><div class="mstats-title">팀별 총 획득 점수</div><div class="hbar-list">${teamBars}</div></div>`;
+
+  // ── Card 2: 팀별 분류(카테고리)별 획득 점수 ──
+  const allCatMax=Math.max(...Object.values(teamCatScores).flatMap(c=>Object.values(c)))||1;
+  const teamCatHtml=teamEntries.map(([tname],i)=>{
+    const cats=teamCatScores[tname]||{team:0,comm:0,priv:0};
+    const color=teamColors[i%teamColors.length];
+    const catRows=catDefs.map(cd=>`<div class="hbar-item" style="margin-bottom:6px">
+      <div class="hbar-header"><div class="hbar-label">${cd.label}</div><div class="hbar-val" style="color:${cd.color}">${(cats[cd.key]||0).toLocaleString()}</div></div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round((cats[cd.key]||0)/allCatMax*100)}%;background:${cd.color}"></div></div>
+    </div>`).join('');
+    return `<div style="margin-bottom:18px">
+      <div style="font-family:'Black Han Sans',sans-serif;font-size:13px;color:${color};margin-bottom:8px;letter-spacing:1px">${tname}</div>
+      ${catRows}
+    </div>`;
+  }).join('');
+  const card2=`<div class="mstats-card"><div class="mstats-title">팀별 분류별 획득 점수</div>${teamCatHtml}</div>`;
+
+  // ── Card 3: TOP5 + 카테고리 참여율 (기존 유지) ──
   const top5=ranking.slice(0,5);
   const maxTop=top5[0]?.total||1;
   const topItems=top5.map((p,i)=>{
