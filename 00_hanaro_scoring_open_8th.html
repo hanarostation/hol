@@ -3,205 +3,182 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>하나로 오브 레전드 — Score Report</title>
+<title>Hanaro of Legends — Score Report</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  :root {
-    --gold:#C89B3C; --gold-light:#F0E6B2; --gold-bright:#FFD700;
-    --blue:#0AC8B9; --blue-dark:#0593A2;
-    --purple:#7B2FBE; --red:#C62F2F;
-    --darker:#060D1B; --card-bg:#0E1E3D; --card-border:#1E3A5F;
-    --text-main:#C8AA6E; --text-sub:#A0B4CC;
-    --silver:#A8A8B0; --bronze:#B87333;
-  }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:var(--darker);color:var(--text-main);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:hidden;}
-  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 10% 20%,rgba(200,170,110,.4) 0%,transparent 100%),radial-gradient(1px 1px at 30% 70%,rgba(10,200,185,.3) 0%,transparent 100%),radial-gradient(1px 1px at 60% 15%,rgba(200,170,110,.5) 0%,transparent 100%),radial-gradient(2px 2px at 45% 40%,rgba(255,215,0,.2) 0%,transparent 100%);pointer-events:none;z-index:0;}
-  .container{max-width:1200px;margin:0 auto;padding:0 20px 60px;position:relative;z-index:1;}
+:root {
+  --gold:#C89B3C; --gold-light:#F0E6B2; --gold-bright:#FFD700;
+  --blue:#0AC8B9; --blue-dark:#0593A2;
+  --purple:#7B2FBE; --red:#C62F2F;
+  --darker:#060D1B; --card-bg:#0E1E3D; --card-border:#1E3A5F;
+  --text-main:#C8AA6E; --text-sub:#A0B4CC;
+  --silver:#A8A8B0; --bronze:#B87333;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--darker);color:var(--text-main);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:
+  radial-gradient(1px 1px at 10% 20%,rgba(200,170,110,.4) 0%,transparent 100%),
+  radial-gradient(1px 1px at 30% 70%,rgba(10,200,185,.3) 0%,transparent 100%),
+  radial-gradient(1px 1px at 60% 15%,rgba(200,170,110,.5) 0%,transparent 100%),
+  radial-gradient(2px 2px at 45% 40%,rgba(255,215,0,.2) 0%,transparent 100%);
+  pointer-events:none;z-index:0;}
+.container{max-width:1200px;margin:0 auto;padding:0 20px 60px;position:relative;z-index:1;}
 
-  /* ── UPLOAD ZONE (initial big state) ── */
-  .upload-zone{border:2px dashed var(--card-border);border-radius:16px;padding:40px 20px;text-align:center;margin:30px 0;cursor:pointer;transition:all .2s;background:rgba(14,30,61,.4);position:relative;}
-  .upload-zone:hover,.upload-zone.drag-over{border-color:var(--gold);background:rgba(200,155,60,.06);box-shadow:0 0 30px rgba(200,155,60,.15);}
-  .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-  .upload-icon{font-size:40px;margin-bottom:12px;}
-  .upload-title{font-family:'Black Han Sans',sans-serif;font-size:18px;color:var(--gold);margin-bottom:6px;}
-  .upload-sub{font-size:12px;color:var(--text-sub);letter-spacing:1px;}
-  .upload-filename{margin-top:12px;font-size:13px;color:var(--blue);font-weight:500;}
+/* HEADER */
+.header{text-align:center;padding:40px 20px 36px;position:relative;}
+.header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--blue),var(--gold),transparent);}
+.logo-wrap{margin-bottom:16px;min-height:60px;display:flex;align-items:center;justify-content:center;}
+.logo-wrap img{height:80px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(200,155,60,.5));}
+.logo-fallback{font-family:'Black Han Sans',sans-serif;font-size:44px;color:var(--gold);text-shadow:0 0 30px rgba(200,155,60,.6);display:none;}
+.season-badge{display:inline-block;font-family:'Black Han Sans',sans-serif;font-size:11px;letter-spacing:4px;color:var(--blue);border:1px solid var(--blue-dark);padding:4px 16px;border-radius:20px;margin-bottom:14px;background:rgba(10,200,185,.08);animation:pulse-blue 2s ease-in-out infinite;}
+@keyframes pulse-blue{0%,100%{box-shadow:0 0 8px rgba(10,200,185,.3)}50%{box-shadow:0 0 20px rgba(10,200,185,.7)}}
+.title-main{font-family:'Black Han Sans',sans-serif;font-size:clamp(32px,5vw,64px);color:var(--gold);text-shadow:0 0 30px rgba(200,155,60,.6),0 0 60px rgba(200,155,60,.3),2px 2px 0 rgba(0,0,0,.8);letter-spacing:2px;line-height:1;margin-bottom:8px;}
+.title-sub{font-family:'Black Han Sans',sans-serif;font-size:clamp(14px,2vw,22px);color:var(--text-sub);letter-spacing:8px;text-transform:uppercase;margin-bottom:16px;}
+.header-divider{width:300px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:16px auto;}
+.header-info{font-size:12px;color:var(--text-sub);letter-spacing:2px;}
 
-  /* ── FLOATING UPLOAD BUTTON (after file loaded) ── */
-  .upload-fab{
-    position:fixed; bottom:32px; right:32px; z-index:100;
-    width:56px; height:56px; border-radius:50%;
-    background:linear-gradient(135deg,#0E1E3D,#0A1428);
-    border:2px solid var(--card-border);
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer; transition:all .25s;
-    box-shadow:0 4px 20px rgba(0,0,0,.5);
-  }
-  .upload-fab:hover{ border-color:var(--gold); box-shadow:0 0 24px rgba(200,155,60,.4); transform:scale(1.1); }
-  .upload-fab:hover .fab-tooltip{ opacity:1; pointer-events:auto; transform:translateX(-8px); }
-  .upload-fab input{ position:absolute; inset:0; opacity:0; cursor:pointer; border-radius:50%; width:100%; height:100%; }
-  .fab-icon{ font-size:22px; line-height:1; }
-  .fab-tooltip{
-    position:absolute; right:calc(100% + 12px); top:50%; transform:translateY(-50%) translateX(0px);
-    background:var(--card-bg); border:1px solid var(--card-border);
-    color:var(--text-main); font-size:12px; font-family:'Black Han Sans',sans-serif;
-    letter-spacing:1px; padding:6px 12px; border-radius:6px; white-space:nowrap;
-    opacity:0; pointer-events:none; transition:all .2s;
-  }
-  .fab-filename{ font-size:9px; color:var(--blue); margin-top:2px; text-align:center; max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* LOADING / ERROR */
+.center-state{text-align:center;padding:80px 20px;}
+.center-state .icon{font-size:52px;margin-bottom:16px;}
+.spin{animation:spin 1.5s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.center-state .msg{font-family:'Black Han Sans',sans-serif;font-size:16px;color:var(--text-sub);letter-spacing:3px;}
+.center-state .sub{font-size:12px;color:var(--text-sub);margin-top:8px;opacity:.6;}
 
-  /* ── HEADER ── */
-  .header{text-align:center;padding:40px 20px 36px;position:relative;}
-  .header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:600px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),var(--blue),var(--gold),transparent);}
-  .logo-wrap{margin-bottom:16px;min-height:60px;display:flex;align-items:center;justify-content:center;}
-  .logo-wrap img{height:80px;object-fit:contain;filter:drop-shadow(0 0 20px rgba(200,155,60,.5));}
-  .logo-fallback{font-family:'Black Han Sans',sans-serif;font-size:44px;color:var(--gold);text-shadow:0 0 30px rgba(200,155,60,.6);letter-spacing:4px;display:none;}
-  .season-badge{display:inline-block;font-family:'Black Han Sans',sans-serif;font-size:11px;letter-spacing:4px;color:var(--blue);border:1px solid var(--blue-dark);padding:4px 16px;border-radius:20px;margin-bottom:14px;background:rgba(10,200,185,.08);animation:pulse-blue 2s ease-in-out infinite;}
-  @keyframes pulse-blue{0%,100%{box-shadow:0 0 8px rgba(10,200,185,.3)}50%{box-shadow:0 0 20px rgba(10,200,185,.7)}}
-  .title-main{font-family:'Black Han Sans',sans-serif;font-size:clamp(32px,5vw,64px);color:var(--gold);text-shadow:0 0 30px rgba(200,155,60,.6),0 0 60px rgba(200,155,60,.3),2px 2px 0 rgba(0,0,0,.8);letter-spacing:2px;line-height:1;margin-bottom:8px;}
-  .title-sub{font-family:'Black Han Sans',sans-serif;font-size:clamp(14px,2vw,22px);color:var(--text-sub);letter-spacing:8px;text-transform:uppercase;margin-bottom:16px;}
-  .header-divider{width:300px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:16px auto;}
-  .header-info{font-size:12px;color:var(--text-sub);letter-spacing:2px;}
+/* SUMMARY */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:36px 0;}
+@media(max-width:768px){.summary-grid{grid-template-columns:repeat(2,1fr);}}
+.stat-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:8px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(200,155,60,.2);}
+.stat-number{font-family:'Black Han Sans',sans-serif;font-size:34px;color:var(--gold-bright);text-shadow:0 0 15px rgba(255,215,0,.4);}
+.stat-label{font-size:11px;color:var(--text-sub);letter-spacing:2px;margin-top:4px;text-transform:uppercase;}
 
-  /* ── SUMMARY ── */
-  .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:36px 0;}
-  @media(max-width:768px){.summary-grid{grid-template-columns:repeat(2,1fr);}}
-  .stat-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:8px;padding:20px;text-align:center;position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s;}
-  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
-  .stat-card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(200,155,60,.2);}
-  .stat-number{font-family:'Black Han Sans',sans-serif;font-size:34px;color:var(--gold-bright);text-shadow:0 0 15px rgba(255,215,0,.4);}
-  .stat-label{font-size:11px;color:var(--text-sub);letter-spacing:2px;margin-top:4px;text-transform:uppercase;}
+/* SECTION TITLE */
+.section-title{font-family:'Black Han Sans',sans-serif;font-size:20px;color:var(--gold);letter-spacing:3px;margin:50px 0 20px;display:flex;align-items:center;gap:12px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--card-border),transparent);}
 
-  /* ── SECTION TITLE ── */
-  .section-title{font-family:'Black Han Sans',sans-serif;font-size:20px;color:var(--gold);letter-spacing:3px;margin:50px 0 20px;display:flex;align-items:center;gap:12px;}
-  .section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--card-border),transparent);}
+/* LEADERBOARD */
+.leaderboard{display:flex;flex-direction:column;gap:10px;}
+.lb-row{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:10px;padding:12px 18px;display:grid;grid-template-columns:52px 52px 170px 1fr auto auto;align-items:center;gap:14px;transition:all .2s;position:relative;overflow:hidden;animation:fadeInUp .35s ease both;}
+.lb-row:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(200,155,60,.15);transform:translateX(4px);}
+.lb-row.rank-1{border-color:var(--gold-bright);background:linear-gradient(135deg,#1A2910,#0E1E3D);box-shadow:0 0 30px rgba(255,215,0,.2);}
+.lb-row.rank-1::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,215,0,.06),transparent);}
+.lb-row.rank-2{border-color:var(--silver);box-shadow:0 0 15px rgba(168,168,176,.12);}
+.lb-row.rank-3{border-color:var(--bronze);box-shadow:0 0 15px rgba(184,115,51,.12);}
+.rank-badge{font-family:'Black Han Sans',sans-serif;font-size:22px;text-align:center;}
+.rank-1 .rank-badge{color:var(--gold-bright);text-shadow:0 0 12px rgba(255,215,0,.7);}
+.rank-2 .rank-badge{color:var(--silver);}
+.rank-3 .rank-badge{color:var(--bronze);}
+.lb-row:not(.rank-1):not(.rank-2):not(.rank-3) .rank-badge{color:var(--text-sub);font-size:15px;}
+.player-photo{width:48px;height:48px;border-radius:50%;border:2px solid var(--card-border);overflow:hidden;background:#0A1428;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;position:relative;}
+.rank-1 .player-photo{border-color:var(--gold-bright);box-shadow:0 0 10px rgba(255,215,0,.4);}
+.rank-2 .player-photo{border-color:var(--silver);}
+.rank-3 .player-photo{border-color:var(--bronze);}
+.player-photo img{width:100%;height:100%;object-fit:cover;}
+.photo-placeholder{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--text-sub);display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
+.photo-hover-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;transition:opacity .2s;pointer-events:none;}
+.player-photo:hover .photo-hover-overlay{opacity:1;}
+.player-callname{font-family:'Black Han Sans',sans-serif;font-size:19px;color:var(--text-main);}
+.rank-1 .player-callname{color:var(--gold-bright);}
+.player-realname{font-size:11px;color:var(--text-sub);margin-top:2px;}
+.mission-bars{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.mission-bar{height:22px;border-radius:3px;display:flex;align-items:center;font-size:10px;font-weight:700;letter-spacing:.5px;padding:0 7px;white-space:nowrap;}
+.bar-team{background:rgba(10,200,185,.18);border:1px solid var(--blue-dark);color:var(--blue);}
+.bar-comm{background:rgba(123,47,190,.18);border:1px solid var(--purple);color:#B87FFF;}
+.bar-private{background:rgba(198,47,47,.18);border:1px solid var(--red);color:#FF7F7F;}
+.score-bar-wrap{width:100px;}
+.score-bar-bg{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
+.score-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue-dark),var(--gold));}
+.total-score{font-family:'Black Han Sans',sans-serif;font-size:20px;color:var(--gold-bright);text-align:right;min-width:76px;}
+.total-score span{font-size:11px;color:var(--text-sub);font-family:'Noto Sans KR',sans-serif;font-weight:400;}
+@media(max-width:900px){.lb-row{grid-template-columns:44px 44px 120px 1fr auto;}.score-bar-wrap{display:none;}}
+@media(max-width:600px){.lb-row{grid-template-columns:36px 40px 1fr auto;grid-template-rows:auto auto;}.mission-bars{grid-column:3/-1;}}
 
-  /* ── LEADERBOARD ── */
-  .leaderboard{display:flex;flex-direction:column;gap:10px;}
-  .lb-row{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:10px;padding:12px 18px;display:grid;grid-template-columns:52px 52px 170px 1fr auto auto;align-items:center;gap:14px;transition:all .2s;position:relative;overflow:hidden;animation:fadeInUp .35s ease both;}
-  .lb-row:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(200,155,60,.15);transform:translateX(4px);}
-  .lb-row.rank-1{border-color:var(--gold-bright);background:linear-gradient(135deg,#1A2910,#0E1E3D);box-shadow:0 0 30px rgba(255,215,0,.2);}
-  .lb-row.rank-1::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,215,0,.06),transparent);}
-  .lb-row.rank-2{border-color:var(--silver);box-shadow:0 0 15px rgba(168,168,176,.12);}
-  .lb-row.rank-3{border-color:var(--bronze);box-shadow:0 0 15px rgba(184,115,51,.12);}
-  .rank-badge{font-family:'Black Han Sans',sans-serif;font-size:22px;text-align:center;}
-  .rank-1 .rank-badge{color:var(--gold-bright);text-shadow:0 0 12px rgba(255,215,0,.7);}
-  .rank-2 .rank-badge{color:var(--silver);}
-  .rank-3 .rank-badge{color:var(--bronze);}
-  .lb-row:not(.rank-1):not(.rank-2):not(.rank-3) .rank-badge{color:var(--text-sub);font-size:15px;}
-  .player-photo{width:48px;height:48px;border-radius:50%;border:2px solid var(--card-border);overflow:hidden;background:#0A1428;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .rank-1 .player-photo{border-color:var(--gold-bright);box-shadow:0 0 10px rgba(255,215,0,.4);}
-  .rank-2 .player-photo{border-color:var(--silver);}
-  .rank-3 .player-photo{border-color:var(--bronze);}
-  .player-photo img{width:100%;height:100%;object-fit:cover;}
-  .photo-placeholder{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--text-sub);text-align:center;line-height:1.2;padding:2px;display:flex;align-items:center;justify-content:center;width:100%;height:100%;}
-  .clickable-photo{cursor:pointer;position:relative;}
-  .photo-hover-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.55);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;transition:opacity .2s;}
-  .clickable-photo:hover .photo-hover-overlay{opacity:1;}
-  .player-callname{font-family:'Black Han Sans',sans-serif;font-size:19px;color:var(--text-main);}
-  .rank-1 .player-callname{color:var(--gold-bright);}
-  .player-realname{font-size:11px;color:var(--text-sub);margin-top:2px;}
-  .mission-bars{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
-  .mission-bar{height:22px;border-radius:3px;display:flex;align-items:center;font-size:10px;font-weight:700;letter-spacing:.5px;padding:0 7px;white-space:nowrap;}
-  .bar-team{background:rgba(10,200,185,.18);border:1px solid var(--blue-dark);color:var(--blue);}
-  .bar-comm{background:rgba(123,47,190,.18);border:1px solid var(--purple);color:#B87FFF;}
-  .bar-private{background:rgba(198,47,47,.18);border:1px solid var(--red);color:#FF7F7F;}
-  .score-bar-wrap{width:100px;}
-  .score-bar-bg{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
-  .score-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue-dark),var(--gold));}
-  .total-score{font-family:'Black Han Sans',sans-serif;font-size:20px;color:var(--gold-bright);text-align:right;min-width:76px;}
-  .total-score span{font-size:11px;color:var(--text-sub);font-family:'Noto Sans KR',sans-serif;font-weight:400;}
-  @media(max-width:900px){.lb-row{grid-template-columns:44px 44px 120px 1fr auto;}.score-bar-wrap{display:none;}}
-  @media(max-width:600px){.lb-row{grid-template-columns:36px 40px 1fr auto;grid-template-rows:auto auto;}.mission-bars{grid-column:3/-1;}}
+/* SEASON TABS */
+.season-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.season-tab{font-family:'Black Han Sans',sans-serif;font-size:13px;letter-spacing:2px;padding:8px 18px;border-radius:6px;border:1px solid var(--card-border);background:var(--card-bg);color:var(--text-sub);cursor:pointer;transition:all .2s;}
+.season-tab:hover{border-color:var(--gold);color:var(--gold);}
+.season-tab.active{border-color:var(--gold-bright);background:rgba(255,215,0,.08);color:var(--gold-bright);box-shadow:0 0 15px rgba(255,215,0,.15);}
 
-  /* ── SEASON TABS ── */
-  .season-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
-  .season-tab{font-family:'Black Han Sans',sans-serif;font-size:13px;letter-spacing:2px;padding:8px 18px;border-radius:6px;border:1px solid var(--card-border);background:var(--card-bg);color:var(--text-sub);cursor:pointer;transition:all .2s;}
-  .season-tab:hover{border-color:var(--gold);color:var(--gold);}
-  .season-tab.active{border-color:var(--gold-bright);background:rgba(255,215,0,.08);color:var(--gold-bright);box-shadow:0 0 15px rgba(255,215,0,.15);}
+/* TIER */
+.tier-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+@media(max-width:1000px){.tier-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.tier-grid{grid-template-columns:repeat(2,1fr);}}
+.tier-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:10px;padding:20px 14px;text-align:center;}
+.tier-img-wrap{width:72px;height:72px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;}
+.tier-img-wrap img{width:100%;height:100%;object-fit:contain;}
+.tier-img-fallback{font-size:44px;display:none;}
+.tier-card-name{font-family:'Black Han Sans',sans-serif;font-size:14px;letter-spacing:2px;margin-bottom:3px;}
+.tier-card-cond{font-size:10px;color:var(--text-sub);margin-bottom:6px;letter-spacing:1px;}
+.tier-card-bonus{font-family:'Black Han Sans',sans-serif;font-size:24px;margin-bottom:14px;}
+.tier-player-list{display:flex;flex-direction:column;gap:5px;}
+.tier-player-item{font-size:12px;padding:5px 8px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;gap:6px;}
+.tier-player-score{font-family:'Black Han Sans',sans-serif;font-size:12px;flex-shrink:0;}
+.t-master{border-color:rgba(155,89,182,.5);}.t-master .tier-card-name{color:#C39BD3;}.t-master .tier-card-bonus{color:#9B59B6;}.t-master .tier-player-item{background:rgba(155,89,182,.08);color:#C39BD3;}
+.t-expert{border-color:rgba(231,76,60,.5);}.t-expert .tier-card-name{color:#F1948A;}.t-expert .tier-card-bonus{color:#E74C3C;}.t-expert .tier-player-item{background:rgba(231,76,60,.08);color:#F1948A;}
+.t-proficiency{border-color:rgba(230,126,34,.5);}.t-proficiency .tier-card-name{color:#F0B27A;}.t-proficiency .tier-card-bonus{color:#E67E22;}.t-proficiency .tier-player-item{background:rgba(230,126,34,.08);color:#F0B27A;}
+.t-growth{border-color:rgba(39,174,96,.5);}.t-growth .tier-card-name{color:#82E0AA;}.t-growth .tier-card-bonus{color:#27AE60;}.t-growth .tier-player-item{background:rgba(39,174,96,.08);color:#82E0AA;}
+.t-foundation{border-color:rgba(160,180,204,.3);}.t-foundation .tier-card-name{color:var(--text-sub);}.t-foundation .tier-card-bonus{color:var(--text-sub);}.t-foundation .tier-player-item{background:rgba(160,180,204,.05);color:var(--text-sub);}
 
-  /* ── TIER GRID ── */
-  .tier-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
-  @media(max-width:1000px){.tier-grid{grid-template-columns:repeat(3,1fr);}}
-  @media(max-width:600px){.tier-grid{grid-template-columns:repeat(2,1fr);}}
-  .tier-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:10px;padding:20px 14px;text-align:center;}
-  .tier-img-wrap{width:72px;height:72px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;}
-  .tier-img-wrap img{width:100%;height:100%;object-fit:contain;}
-  .tier-img-fallback{font-size:44px;}
-  .tier-card-name{font-family:'Black Han Sans',sans-serif;font-size:14px;letter-spacing:2px;margin-bottom:3px;}
-  .tier-card-cond{font-size:10px;color:var(--text-sub);margin-bottom:6px;letter-spacing:1px;}
-  .tier-card-bonus{font-family:'Black Han Sans',sans-serif;font-size:24px;margin-bottom:14px;}
-  .tier-player-list{display:flex;flex-direction:column;gap:5px;}
-  .tier-player-item{font-size:12px;padding:5px 8px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;gap:6px;}
-  .tier-player-score{font-family:'Black Han Sans',sans-serif;font-size:12px;flex-shrink:0;}
-  .t-master{border-color:rgba(155,89,182,.5);}.t-master .tier-card-name{color:#C39BD3;}.t-master .tier-card-bonus{color:#9B59B6;}.t-master .tier-player-item{background:rgba(155,89,182,.08);color:#C39BD3;}
-  .t-expert{border-color:rgba(231,76,60,.5);}.t-expert .tier-card-name{color:#F1948A;}.t-expert .tier-card-bonus{color:#E74C3C;}.t-expert .tier-player-item{background:rgba(231,76,60,.08);color:#F1948A;}
-  .t-proficiency{border-color:rgba(230,126,34,.5);}.t-proficiency .tier-card-name{color:#F0B27A;}.t-proficiency .tier-card-bonus{color:#E67E22;}.t-proficiency .tier-player-item{background:rgba(230,126,34,.08);color:#F0B27A;}
-  .t-growth{border-color:rgba(39,174,96,.5);}.t-growth .tier-card-name{color:#82E0AA;}.t-growth .tier-card-bonus{color:#27AE60;}.t-growth .tier-player-item{background:rgba(39,174,96,.08);color:#82E0AA;}
-  .t-foundation{border-color:rgba(160,180,204,.3);}.t-foundation .tier-card-name{color:var(--text-sub);}.t-foundation .tier-card-bonus{color:var(--text-sub);}.t-foundation .tier-player-item{background:rgba(160,180,204,.05);color:var(--text-sub);}
+/* MISSION STATS */
+.mstats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+@media(max-width:900px){.mstats-grid{grid-template-columns:1fr;}}
+.mstats-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:10px;padding:22px 24px;}
+.mstats-title{font-family:'Black Han Sans',sans-serif;font-size:12px;letter-spacing:2px;color:var(--text-sub);margin-bottom:18px;text-transform:uppercase;}
+.donut-wrap{display:flex;align-items:center;gap:20px;}
+.donut-legend{display:flex;flex-direction:column;gap:10px;flex:1;}
+.donut-legend-item{display:flex;align-items:center;gap:8px;}
+.donut-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.donut-legend-label{color:var(--text-sub);flex:1;font-size:11px;}
+.donut-legend-val{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--text-main);}
+.donut-legend-pct{font-size:10px;color:var(--text-sub);margin-left:2px;}
+.hbar-list{display:flex;flex-direction:column;gap:13px;}
+.hbar-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.hbar-label{font-size:11px;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;}
+.hbar-val{font-family:'Black Han Sans',sans-serif;font-size:12px;color:var(--text-main);flex-shrink:0;}
+.hbar-track{height:7px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;}
+.hbar-fill{height:100%;border-radius:4px;}
+.top-list{display:flex;flex-direction:column;gap:8px;}
+.top-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(255,255,255,.03);}
+.top-rank{font-family:'Black Han Sans',sans-serif;font-size:12px;color:var(--text-sub);width:18px;text-align:center;flex-shrink:0;}
+.top-photo{width:28px;height:28px;border-radius:50%;border:1px solid var(--card-border);overflow:hidden;background:#0A1428;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.top-photo img{width:100%;height:100%;object-fit:cover;}
+.top-photo-ph{font-size:9px;color:var(--text-sub);}
+.top-name{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--text-main);flex:1;}
+.top-score{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--gold-bright);}
+.top-bar-wrap{width:50px;}
+.top-bar-bg{height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;}
+.top-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue-dark),var(--gold));}
 
-  /* ── MISSION STATS DASHBOARD ── */
-  .mstats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
-  @media(max-width:900px){.mstats-grid{grid-template-columns:1fr;}}
-  .mstats-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:10px;padding:22px 24px;}
-  .mstats-title{font-family:'Black Han Sans',sans-serif;font-size:12px;letter-spacing:2px;color:var(--text-sub);margin-bottom:18px;text-transform:uppercase;}
-  /* donut */
-  .donut-wrap{display:flex;align-items:center;gap:20px;}
-  .donut-svg{flex-shrink:0;}
-  .donut-legend{display:flex;flex-direction:column;gap:10px;flex:1;}
-  .donut-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;}
-  .donut-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
-  .donut-legend-label{color:var(--text-sub);flex:1;font-size:11px;}
-  .donut-legend-val{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--text-main);}
-  .donut-legend-pct{font-size:10px;color:var(--text-sub);margin-left:2px;}
-  /* hbars */
-  .hbar-list{display:flex;flex-direction:column;gap:13px;}
-  .hbar-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
-  .hbar-label{font-size:11px;color:var(--text-sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;}
-  .hbar-val{font-family:'Black Han Sans',sans-serif;font-size:12px;color:var(--text-main);flex-shrink:0;}
-  .hbar-track{height:7px;background:rgba(255,255,255,.05);border-radius:4px;overflow:hidden;}
-  .hbar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.4,0,.2,1);}
-  /* top players */
-  .top-list{display:flex;flex-direction:column;gap:8px;}
-  .top-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(255,255,255,.03);}
-  .top-rank{font-family:'Black Han Sans',sans-serif;font-size:12px;color:var(--text-sub);width:18px;text-align:center;flex-shrink:0;}
-  .top-photo{width:28px;height:28px;border-radius:50%;border:1px solid var(--card-border);overflow:hidden;background:#0A1428;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .top-photo img{width:100%;height:100%;object-fit:cover;}
-  .top-photo-ph{font-size:9px;color:var(--text-sub);}
-  .top-name{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--text-main);flex:1;}
-  .top-score{font-family:'Black Han Sans',sans-serif;font-size:13px;color:var(--gold-bright);}
-  .top-bar-wrap{width:50px;}
-  .top-bar-bg{height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;}
-  .top-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue-dark),var(--gold));}
+/* MISSIONS */
+.mission-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
+.mission-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:8px;padding:18px;position:relative;overflow:hidden;}
+.mission-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;}
+.mission-card.team::before{background:var(--blue);}
+.mission-card.comm::before{background:var(--purple);}
+.mission-card.priv::before{background:var(--red);}
+.mission-type{font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+.mission-card.team .mission-type{color:var(--blue);}
+.mission-card.comm .mission-type{color:#B87FFF;}
+.mission-card.priv .mission-type{color:#FF7F7F;}
+.mission-name{font-family:'Black Han Sans',sans-serif;font-size:16px;color:var(--text-main);margin-bottom:12px;}
+.mission-participants{display:flex;flex-wrap:wrap;gap:6px;}
+.participant-chip{font-size:11px;padding:3px 8px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--text-sub);}
+.participant-chip.has-bonus{border-color:var(--gold);color:var(--gold-light);background:rgba(200,155,60,.1);}
 
-  /* ── MISSIONS ── */
-  .mission-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
-  .mission-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:8px;padding:18px;position:relative;overflow:hidden;}
-  .mission-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;}
-  .mission-card.team::before{background:var(--blue);}
-  .mission-card.comm::before{background:var(--purple);}
-  .mission-card.priv::before{background:var(--red);}
-  .mission-type{font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
-  .mission-card.team .mission-type{color:var(--blue);}
-  .mission-card.comm .mission-type{color:#B87FFF;}
-  .mission-card.priv .mission-type{color:#FF7F7F;}
-  .mission-name{font-family:'Black Han Sans',sans-serif;font-size:16px;color:var(--text-main);margin-bottom:12px;}
-  .mission-participants{display:flex;flex-wrap:wrap;gap:6px;}
-  .participant-chip{font-size:11px;padding:3px 8px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--text-sub);}
-  .participant-chip.has-bonus{border-color:var(--gold);color:var(--gold-light);background:rgba(200,155,60,.1);}
+/* FOOTER */
+.footer{text-align:center;margin-top:60px;padding-top:30px;border-top:1px solid var(--card-border);font-size:11px;color:var(--text-sub);letter-spacing:2px;}
 
-  /* ── FOOTER ── */
-  .footer{text-align:center;margin-top:60px;padding-top:30px;border-top:1px solid var(--card-border);font-size:11px;color:var(--text-sub);letter-spacing:2px;}
+/* FLOATING FAB */
+.upload-fab{position:fixed;bottom:32px;right:32px;z-index:100;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#0E1E3D,#0A1428);border:2px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(0,0,0,.5);text-decoration:none;}
+.upload-fab:hover{border-color:var(--gold);box-shadow:0 0 24px rgba(200,155,60,.4);transform:scale(1.1);}
+.upload-fab:hover .fab-tooltip{opacity:1;transform:translateY(-50%) translateX(-8px);}
+.fab-icon{font-size:22px;line-height:1;}
+.fab-tooltip{position:absolute;right:calc(100% + 12px);top:50%;transform:translateY(-50%) translateX(0);background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-main);font-size:12px;font-family:'Black Han Sans',sans-serif;letter-spacing:1px;padding:6px 12px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:all .2s;}
 
-  /* ── EMPTY STATE ── */
-  .empty-state{text-align:center;padding:60px 20px;color:var(--text-sub);}
-  .empty-icon{font-size:60px;margin-bottom:16px;opacity:.5;}
-  .empty-text{font-family:'Black Han Sans',sans-serif;font-size:18px;color:var(--text-sub);letter-spacing:2px;}
-
-  @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-  .hidden{display:none!important;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.hidden{display:none!important;}
 </style>
 </head>
 <body>
@@ -210,36 +187,33 @@
   <!-- HEADER -->
   <div class="header">
     <div class="logo-wrap">
-      <img src="https://hanarostation.github.io/hol/images/logo.png" alt="Hanaro of Legends Logo"
+      <img src="images/logo.png" alt="HOL Logo"
            onerror="this.style.display='none';document.querySelector('.logo-fallback').style.display='block'">
-      <div class="logo-fallback">하나로 OL</div>
+      <div class="logo-fallback">HOL</div>
     </div>
     <div class="season-badge" id="headerBadge">HOL</div>
-    <div class="title-main" id="titleMain">Hanaro of Legends</div>
+    <div class="title-main">Hanaro of Legends</div>
     <div class="title-sub">Summoner Score Report</div>
     <div class="header-divider"></div>
-    <div class="header-info" id="headerInfo">데이터를 업로드해주세요</div>
+    <div class="header-info" id="headerInfo">데이터 불러오는 중...</div>
   </div>
 
-  <!-- LOADING STATE -->
-  <div id="loadingState" style="text-align:center;padding:60px 20px;">
-    <div style="font-size:48px;margin-bottom:16px;animation:spin 1.5s linear infinite;display:inline-block">⚔️</div>
-    <div style="font-family:'Black Han Sans',sans-serif;font-size:16px;color:var(--text-sub);letter-spacing:3px">데이터 불러오는 중...</div>
+  <!-- LOADING -->
+  <div class="center-state" id="loadingState">
+    <div class="icon spin">⚔️</div>
+    <div class="msg">데이터 불러오는 중...</div>
   </div>
 
-  <!-- UPLOAD (fallback, hidden by default) -->
-  <div class="upload-zone hidden" id="uploadZone">
-    <input type="file" id="fileInput" accept=".xlsx,.xls" />
-    <div class="upload-icon">⚔️</div>
-    <div class="upload-title">점수표 파일 업로드</div>
-    <div class="upload-sub">자동 로딩 실패 · 엑셀 파일을 직접 선택하세요</div>
-    <div class="upload-filename" id="uploadFilename"></div>
+  <!-- ERROR -->
+  <div class="center-state hidden" id="errorState">
+    <div class="icon">⚠️</div>
+    <div class="msg">데이터를 불러올 수 없습니다</div>
+    <div class="sub">score/Hanaro_Scoring.json 파일을 확인해주세요</div>
   </div>
 
-  <!-- DASHBOARD (hidden until file loaded) -->
+  <!-- DASHBOARD -->
   <div id="dashboard" class="hidden">
 
-    <!-- SUMMARY -->
     <div class="summary-grid">
       <div class="stat-card"><div class="stat-number" id="statPlayers">—</div><div class="stat-label">총 소환사</div></div>
       <div class="stat-card"><div class="stat-number" id="statMissions">—</div><div class="stat-label">완료 미션</div></div>
@@ -247,238 +221,163 @@
       <div class="stat-card"><div class="stat-number" id="statTotal">—</div><div class="stat-label">총 누적 점수</div></div>
     </div>
 
-    <!-- LEADERBOARD -->
     <div class="section-title">⚔️ 소환사 랭킹</div>
     <div class="leaderboard" id="leaderboard"></div>
 
-    <!-- TIER (season tabs) -->
     <div class="section-title">🏆 시즌 티어</div>
     <div class="season-tabs" id="seasonTabs"></div>
     <div class="tier-grid" id="tierGrid"></div>
 
-    <!-- MISSION STATS -->
     <div class="section-title">📊 미션 통계</div>
     <div class="mstats-grid" id="mstatsGrid"></div>
 
-    <!-- MISSIONS -->
     <div class="section-title">📋 미션 현황</div>
     <div class="mission-grid" id="missionGrid"></div>
 
-    <!-- FOOTER -->
     <div class="footer">
-      HANARO OF LEGENDS · 8기
-      <span id="footerDate"></span>
+      HANARO OF LEGENDS · 8기 <span id="footerDate"></span>
       <br><span style="color:var(--gold);margin-top:6px;display:block">⚡ 다음 미션에서 순위가 뒤집힐 수 있습니다 ⚡</span>
     </div>
 
-  </div><!-- end dashboard -->
-</div><!-- end container -->
+  </div>
+</div>
 
-<!-- FLOATING UPLOAD BUTTON (shown after file loaded) -->
-<div class="upload-fab hidden" id="uploadFab">
-  <input type="file" id="fileInputFab" accept=".xlsx,.xls" />
-  <div class="fab-icon">📂</div>
-  <div class="fab-tooltip">점수표 업로드</div>
+<!-- FAB: 새로고침 -->
+<div class="upload-fab" id="refreshFab" onclick="loadData()" title="새로고침">
+  <div class="fab-icon">🔄</div>
+  <div class="fab-tooltip">데이터 새로고침</div>
 </div>
 
 <script>
-const BASE_IMG = 'https://hanarostation.github.io/hol/images/';
+const BASE_IMG  = 'images/';
+const JSON_URL  = 'score/Hanaro_Scoring.json';
+
 const TIER_DEFS = [
-  { key:'master',      name:'MASTER',      img:'tier5.png', cond:'해당 주 상위 10% 이상',  bonus:'+300pt', pct:90, cls:'t-master',      fb:'🏅' },
-  { key:'expert',      name:'EXPERT',      img:'tier4.png', cond:'해당 주 상위 20% 이상',  bonus:'+200pt', pct:80, cls:'t-expert',      fb:'🔴' },
-  { key:'proficiency', name:'PROFICIENCY', img:'tier3.png', cond:'해당 주 상위 30% 이상',  bonus:'+150pt', pct:70, cls:'t-proficiency', fb:'🤖' },
-  { key:'growth',      name:'GROWTH',      img:'tier2.png', cond:'해당 주 상위 50% 이상',  bonus:'+100pt', pct:50, cls:'t-growth',      fb:'📈' },
-  { key:'foundation',  name:'FOUNDATION',  img:'tier1.png', cond:'해당 주 상위 50% 미만',  bonus:'+50pt',  pct:0,  cls:'t-foundation',  fb:'🌱' },
+  {key:'master',      name:'MASTER',      img:'tier5.png', cond:'해당 주 상위 10% 이상', bonus:'+300pt', pct:90, cls:'t-master',      fb:'🏅'},
+  {key:'expert',      name:'EXPERT',      img:'tier4.png', cond:'해당 주 상위 20% 이상', bonus:'+200pt', pct:80, cls:'t-expert',      fb:'🔴'},
+  {key:'proficiency', name:'PROFICIENCY', img:'tier3.png', cond:'해당 주 상위 30% 이상', bonus:'+150pt', pct:70, cls:'t-proficiency', fb:'🤖'},
+  {key:'growth',      name:'GROWTH',      img:'tier2.png', cond:'해당 주 상위 50% 이상', bonus:'+100pt', pct:50, cls:'t-growth',      fb:'📈'},
+  {key:'foundation',  name:'FOUNDATION',  img:'tier1.png', cond:'해당 주 상위 50% 미만', bonus:'+50pt',  pct:0,  cls:'t-foundation',  fb:'🌱'},
 ];
 
-// ── Category detection ──
-function detectCat(val){
-  if(!val) return 'etc';
-  const v = String(val);
-  if(v.includes('팀')) return 'team';
-  if(v.includes('커뮤')) return 'comm';
-  if(v.includes('프라이')) return 'priv';
+// ── helpers ──
+function detectCat(v){
+  const s=String(v||'');
+  if(s.includes('팀')) return 'team';
+  if(s.includes('커뮤')) return 'comm';
+  if(s.includes('프라이')) return 'priv';
   return 'etc';
 }
-function catLabel(cat){ return {team:'팀 액티브 미션',comm:'커뮤니케이션 미션',priv:'프라이빗 미션',etc:'기타'}[cat]||cat; }
-function catBarClass(cat){ return {team:'bar-team',comm:'bar-comm',priv:'bar-private'}[cat]||'bar-team'; }
-function catCardClass(cat){ return {team:'team',comm:'comm',priv:'priv'}[cat]||'team'; }
+function catLabel(c){return {team:'팀 액티브 미션',comm:'커뮤니케이션 미션',priv:'프라이빗 미션',etc:'기타'}[c]||c;}
+function catBarCls(c){return {team:'bar-team',comm:'bar-comm',priv:'bar-private'}[c]||'bar-team';}
+function catCardCls(c){return {team:'team',comm:'comm',priv:'priv'}[c]||'team';}
 
-// ── Parse Excel ──
-function parseExcel(data){
-  const wb = XLSX.read(data, {type:'array', cellDates:true});
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
-  return rows;
-}
-
-// ── Build stats ──
+// ── build state ──
 function buildState(rows){
-  // Detect column names flexibly
-  const sample = rows[0]||{};
-  const keys = Object.keys(sample);
-  const col = name => keys.find(k=>k.includes(name))||name;
+  const C = k => Object.keys(rows[0]||{}).find(x=>x.includes(k))||k;
+  const CN=C('이름'), CC=C('콜네임'), CCAT=C('분류'), CM=C('미션명'),
+        CS=C('획득점수'), CE=C('추가점수'), CSEA=C('시즌');
 
-  const C_DATE    = col('일자');
-  const C_NAME    = col('이름');
-  const C_CALL    = col('콜네임');
-  const C_GEN     = col('기수');
-  const C_CAT     = col('분류');
-  const C_MISSION = col('미션명');
-  const C_BASE    = col('기본점수');
-  const C_EXTRA   = col('추가점수');
-  const C_SCORE   = col('획득점수');
-  const C_SEASON  = col('시즌');
+  const seasons=[...new Set(rows.map(r=>String(r[CSEA]||'시즌1')))].sort();
+  const bySeasonData={};
+  seasons.forEach(s=>{ bySeasonData[s]=buildSeason(rows.filter(r=>String(r[CSEA]||'시즌1')===s),CN,CC,CCAT,CM,CS,CE); });
+  const overall=buildSeason(rows,CN,CC,CCAT,CM,CS,CE);
 
-  // All seasons
-  const seasons = [...new Set(rows.map(r=>String(r[C_SEASON]||'시즌1')))].sort();
-
-  // Per-season data
-  const bySeasonData = {};
-  seasons.forEach(s=>{
-    const sRows = rows.filter(r=>String(r[C_SEASON]||'시즌1')===s);
-    bySeasonData[s] = buildSeasonData(sRows, C_NAME, C_CALL, C_CAT, C_MISSION, C_SCORE, C_EXTRA);
-  });
-
-  // Overall (all rows)
-  const overallData = buildSeasonData(rows, C_NAME, C_CALL, C_CAT, C_MISSION, C_SCORE, C_EXTRA);
-
-  // Stats
-  const totalPlayers = overallData.ranking.length;
-  const totalMissions = overallData.missions.length;
-  const totalCerts = rows.length;
-  const totalScore = overallData.ranking.reduce((a,p)=>a+p.total,0);
-
-  // Latest date
-  let latestDate = '';
-  rows.forEach(r=>{
-    const d = r[C_DATE];
-    if(d) latestDate = d;
-  });
-
-  return { seasons, bySeasonData, overallData, totalPlayers, totalMissions, totalCerts, totalScore, latestDate };
+  return {
+    seasons, bySeasonData, overall,
+    totalPlayers: overall.ranking.length,
+    totalMissions: overall.missions.length,
+    totalCerts: rows.length,
+    totalScore: overall.ranking.reduce((a,p)=>a+p.total,0),
+  };
 }
 
-function buildSeasonData(rows, C_NAME, C_CALL, C_CAT, C_MISSION, C_SCORE, C_EXTRA){
-  // Per-player scores
-  const playerMap = {};
+function buildSeason(rows,CN,CC,CCAT,CM,CS,CE){
+  const pm={};
   rows.forEach(r=>{
-    const name = String(r[C_NAME]||'').trim();
-    const call = String(r[C_CALL]||name).trim();
-    const cat  = detectCat(r[C_CAT]);
-    const mission = String(r[C_MISSION]||'').trim();
-    const score = Number(r[C_SCORE]||0);
-    const extra = Number(r[C_EXTRA]||0);
+    const name=String(r[CN]||'').trim();
+    const call=String(r[CC]||name).trim();
+    const cat=detectCat(r[CCAT]);
+    const mission=String(r[CM]||'').trim();
+    const score=Number(r[CS]||0);
+    const extra=Number(r[CE]||0);
     if(!name) return;
-    if(!playerMap[name]) playerMap[name]={name,call,total:0,cats:{team:0,comm:0,priv:0},missions:{}};
-    playerMap[name].call = call;
-    playerMap[name].total += score;
-    playerMap[name].cats[cat] = (playerMap[name].cats[cat]||0)+score;
+    if(!pm[name]) pm[name]={name,call,total:0,cats:{team:0,comm:0,priv:0},missions:{}};
+    pm[name].call=call;
+    pm[name].total+=score;
+    pm[name].cats[cat]=(pm[name].cats[cat]||0)+score;
     if(mission){
-      if(!playerMap[name].missions[mission]) playerMap[name].missions[mission]={score:0,extra:0,cat};
-      playerMap[name].missions[mission].score += score;
-      playerMap[name].missions[mission].extra += extra;
+      if(!pm[name].missions[mission]) pm[name].missions[mission]={score:0,extra:0,cat};
+      pm[name].missions[mission].score+=score;
+      pm[name].missions[mission].extra+=extra;
     }
   });
 
-  const ranking = Object.values(playerMap).sort((a,b)=>b.total-a.total);
-  const maxScore = ranking[0]?.total||1;
-
-  // Assign tiers
-  const n = ranking.length;
+  const ranking=Object.values(pm).sort((a,b)=>b.total-a.total);
+  const maxScore=ranking[0]?.total||1;
+  const n=ranking.length;
   ranking.forEach((p,i)=>{
-    const pct = n>1 ? (1-(i/(n-1)))*100 : 100;
-    const tier = TIER_DEFS.find(t=>pct>=t.pct)||TIER_DEFS[TIER_DEFS.length-1];
-    p.tier = tier.key;
-    p.pct  = pct;
-    p.barPct = maxScore>0 ? Math.round((p.total/maxScore)*100) : 0;
+    const pct=n>1?(1-i/(n-1))*100:100;
+    p.tier=(TIER_DEFS.find(t=>pct>=t.pct)||TIER_DEFS[TIER_DEFS.length-1]).key;
+    p.barPct=Math.round((p.total/maxScore)*100);
   });
 
-  // Missions summary
-  const missionMap = {};
+  const mm={};
   rows.forEach(r=>{
-    const mission = String(r[C_MISSION]||'').trim();
-    const cat = detectCat(r[C_CAT]);
-    const call = String(r[C_CALL]||r[C_NAME]||'').trim();
-    const extra = Number(r[C_EXTRA]||0);
+    const mission=String(r[CM]||'').trim();
+    const cat=detectCat(r[CCAT]);
+    const call=String(r[CC]||r[CN]||'').trim();
+    const extra=Number(r[CE]||0);
     if(!mission) return;
-    if(!missionMap[mission]) missionMap[mission]={mission,cat,participants:[],allCount:0};
-    missionMap[mission].allCount++;
-    missionMap[mission].participants.push({call,extra});
+    if(!mm[mission]) mm[mission]={mission,cat,participants:[]};
+    mm[mission].participants.push({call,extra});
   });
-
-  // Deduplicate participants per mission
-  Object.values(missionMap).forEach(m=>{
+  Object.values(mm).forEach(m=>{
     const seen={};
-    m.participants = m.participants.filter(p=>{
-      if(seen[p.call]) return false;
-      seen[p.call]=true;
-      return true;
-    });
+    m.participants=m.participants.filter(p=>seen[p.call]?false:(seen[p.call]=true));
   });
 
-  const missions = Object.values(missionMap);
-
-  return { ranking, missions, maxScore };
+  return {ranking, missions:Object.values(mm), maxScore};
 }
 
-// ── Render ──
-let state = null;
-let activeSeason = null;
-const photoStore = {}; // callname -> dataURL
-
+// ── photo store ──
+const photoStore={};
 function playerPhotoEl(callname){
-  const safe = callname.replace(/[^a-zA-Z0-9가-힣]/g,'_');
-  const githubUrl = BASE_IMG+'player_'+encodeURIComponent(callname)+'.png';
-  const storedSrc = photoStore[callname] ? `src="${photoStore[callname]}"` : `src="${githubUrl}"`;
-  const onerror = photoStore[callname] ? '' : `onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"`;
-  return `<div class="player-photo clickable-photo" data-call="${callname}" title="클릭해서 사진 업로드" onclick="triggerPhotoUpload('${safe}','${callname}')">
-    <img ${storedSrc} alt="${callname}" ${onerror} style="pointer-events:none">
-    <div class="photo-placeholder" style="display:${photoStore[callname]?'none':'flex'};pointer-events:none">${callname.slice(0,3)}</div>
-    <div class="photo-hover-overlay" style="pointer-events:none">📷</div>
-    <input type="file" id="photo_input_${safe}" accept="image/*" style="display:none" onchange="handlePhotoUpload(event,'${callname}')">
+  const safe=callname.replace(/[^a-zA-Z0-9가-힣]/g,'_');
+  const gh=BASE_IMG+'player_'+encodeURIComponent(callname)+'.png';
+  const stored=photoStore[callname];
+  return `<div class="player-photo" data-call="${callname}" title="클릭해서 사진 변경" onclick="triggerPhoto('${safe}','${callname}')">
+    <img src="${stored||gh}" alt="${callname}" ${stored?'':'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"'} style="pointer-events:none">
+    <div class="photo-placeholder" style="display:${stored?'none':'flex'};pointer-events:none">${callname.slice(0,3)}</div>
+    <div class="photo-hover-overlay">📷</div>
+    <input type="file" id="pi_${safe}" accept="image/*" style="display:none" onchange="onPhoto(event,'${callname}')">
   </div>`;
 }
-
-function triggerPhotoUpload(safe, callname){
-  document.getElementById('photo_input_'+safe).click();
-}
-
-function handlePhotoUpload(event, callname){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    photoStore[callname] = e.target.result;
-    // Update all images for this callname
-    document.querySelectorAll(`.clickable-photo[data-call="${callname}"]`).forEach(el=>{
-      const img = el.querySelector('img');
-      const ph  = el.querySelector('.photo-placeholder');
-      img.src = e.target.result;
-      img.style.display = 'block';
-      img.onerror = null;
-      ph.style.display = 'none';
+function triggerPhoto(safe){document.getElementById('pi_'+safe).click();}
+function onPhoto(e,call){
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    photoStore[call]=ev.target.result;
+    document.querySelectorAll(`.player-photo[data-call="${call}"]`).forEach(el=>{
+      el.querySelector('img').src=ev.target.result;
+      el.querySelector('img').style.display='block';
+      el.querySelector('.photo-placeholder').style.display='none';
     });
   };
-  reader.readAsDataURL(file);
+  r.readAsDataURL(f);
 }
 
+// ── renderers ──
 function renderLeaderboard(ranking){
-  const icons = ['👑','🥈','🥉'];
+  const icons=['👑','🥈','🥉'];
   return ranking.map((p,i)=>{
-    const rankClass = i<3?`rank-${i+1}`:'';
-    const badge = i<3 ? icons[i] : (i+1);
-    const bars = Object.entries(p.cats)
-      .filter(([,v])=>v>0)
-      .map(([cat,v])=>`<div class="mission-bar ${catBarClass(cat)}">${catLabel(cat).replace(' 미션','')} ${v.toLocaleString()}</div>`)
-      .join('');
-    return `<div class="lb-row ${rankClass}" style="animation-delay:${Math.min(i*0.05,0.4)}s">
-      <div class="rank-badge">${badge}</div>
+    const bars=Object.entries(p.cats).filter(([,v])=>v>0)
+      .map(([c,v])=>`<div class="mission-bar ${catBarCls(c)}">${catLabel(c).replace(' 미션','')} ${v.toLocaleString()}</div>`).join('');
+    return `<div class="lb-row ${i<3?'rank-'+(i+1):''}" style="animation-delay:${Math.min(i*.05,.4)}s">
+      <div class="rank-badge">${i<3?icons[i]:i+1}</div>
       ${playerPhotoEl(p.call)}
-      <div>
-        <div class="player-callname">${p.call}</div>
-        <div class="player-realname">${p.name}</div>
-      </div>
+      <div><div class="player-callname">${p.call}</div><div class="player-realname">${p.name}</div></div>
       <div class="mission-bars">${bars}</div>
       <div class="score-bar-wrap"><div class="score-bar-bg"><div class="score-bar-fill" style="width:${p.barPct}%"></div></div></div>
       <div class="total-score">${p.total.toLocaleString()} <span>pt</span></div>
@@ -488,41 +387,97 @@ function renderLeaderboard(ranking){
 
 function renderTier(ranking){
   return TIER_DEFS.map(td=>{
-    const players = ranking.filter(p=>p.tier===td.key);
-    const displayPlayers = td.key === 'foundation' ? players.slice(0,4) : players;
-    const hasMore = td.key === 'foundation' && players.length > 4;
-    const imgUrl = BASE_IMG+td.img;
-    const rows = displayPlayers.map(p=>
-      `<div class="tier-player-item"><span>${p.call}</span><span class="tier-player-score">${p.total.toLocaleString()}</span></div>`
-    ).join('') || `<div class="tier-player-item" style="justify-content:center;opacity:.4">해당 없음</div>`;
-    const moreRow = hasMore ? `<div class="tier-player-item" style="justify-content:center;opacity:.5;font-size:11px">+ ${players.length-4}명 더</div>` : '';
+    const all=ranking.filter(p=>p.tier===td.key);
+    const show=td.key==='foundation'?all.slice(0,4):all;
+    const more=td.key==='foundation'&&all.length>4?`<div class="tier-player-item" style="justify-content:center;opacity:.5;font-size:11px">+ ${all.length-4}명 더</div>`:'';
+    const rows=show.map(p=>`<div class="tier-player-item"><span>${p.call}</span><span class="tier-player-score">${p.total.toLocaleString()}</span></div>`).join('')
+      ||`<div class="tier-player-item" style="justify-content:center;opacity:.4">해당 없음</div>`;
     return `<div class="tier-card ${td.cls}">
       <div class="tier-img-wrap">
-        <img src="${imgUrl}" alt="${td.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <img src="${BASE_IMG+td.img}" alt="${td.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
         <div class="tier-img-fallback" style="display:none">${td.fb}</div>
       </div>
       <div class="tier-card-name">${td.name}</div>
       <div class="tier-card-cond">${td.cond}</div>
       <div class="tier-card-bonus">${td.bonus}</div>
-      <div class="tier-player-list">${rows}${moreRow}</div>
+      <div class="tier-player-list">${rows}${more}</div>
     </div>`;
   }).join('');
 }
 
-function renderMissions(missions, totalPlayers){
-  if(!missions.length) return '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">미션 데이터 없음</div></div>';
+function renderMissionStats(overall){
+  const {ranking,missions}=overall;
+  const catScore={team:0,comm:0,priv:0};
+  ranking.forEach(p=>Object.entries(p.cats).forEach(([c,v])=>{if(catScore[c]!==undefined)catScore[c]+=v;}));
+  const catTotal=Object.values(catScore).reduce((a,b)=>a+b,0)||1;
+  const catDefs=[{key:'team',label:'팀 액티브',color:'#0AC8B9'},{key:'comm',label:'커뮤니케이션',color:'#9B59B6'},{key:'priv',label:'프라이빗',color:'#E74C3C'}];
+
+  const R=52,cx=60,cy=60,stroke=14,circ=2*Math.PI*R;
+  let offset=0,segs='';
+  catDefs.forEach(cd=>{
+    const dash=(catScore[cd.key]/catTotal)*circ;
+    segs+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${cd.color}" stroke-width="${stroke}" stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" opacity=".85"/>`;
+    offset+=dash;
+  });
+  const donut=`<svg width="120" height="120" viewBox="0 0 120 120" style="flex-shrink:0">
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="${stroke}"/>
+    ${segs}
+    <text x="${cx}" y="${cy-6}" text-anchor="middle" fill="#C8AA6E" font-family="Black Han Sans" font-size="13">${((catScore.team/catTotal)*100).toFixed(0)}%</text>
+    <text x="${cx}" y="${cy+10}" text-anchor="middle" fill="#A0B4CC" font-family="Noto Sans KR" font-size="9">팀 미션</text>
+  </svg>`;
+  const legend=catDefs.map(cd=>`<div class="donut-legend-item">
+    <div class="donut-dot" style="background:${cd.color}"></div>
+    <div class="donut-legend-label">${cd.label}</div>
+    <div class="donut-legend-val">${catScore[cd.key].toLocaleString()}<span class="donut-legend-pct">(${((catScore[cd.key]/catTotal)*100).toFixed(1)}%)</span></div>
+  </div>`).join('');
+  const card1=`<div class="mstats-card"><div class="mstats-title">카테고리별 획득 점수</div><div class="donut-wrap">${donut}<div class="donut-legend">${legend}</div></div></div>`;
+
+  const mScores={};
+  ranking.forEach(p=>Object.entries(p.missions||{}).forEach(([m,info])=>{mScores[m]=(mScores[m]||0)+info.score;}));
+  const mEntries=Object.entries(mScores).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const mMax=mEntries[0]?.[1]||1;
+  const colorMap={team:'#0AC8B9',comm:'#9B59B6',priv:'#E74C3C',etc:'#C89B3C'};
+  const hbars=mEntries.map(([name,score])=>{
+    const m=missions.find(r=>r.mission===name);
+    const color=colorMap[m?.cat||'etc'];
+    return `<div class="hbar-item"><div class="hbar-header"><div class="hbar-label">${name}</div><div class="hbar-val">${score.toLocaleString()}</div></div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.round(score/mMax*100)}%;background:${color}"></div></div></div>`;
+  }).join('');
+  const card2=`<div class="mstats-card"><div class="mstats-title">미션별 총 획득 점수 (TOP 10)</div><div class="hbar-list">${hbars}</div></div>`;
+
+  const top5=ranking.slice(0,5);
+  const maxTop=top5[0]?.total||1;
+  const topItems=top5.map((p,i)=>{
+    const medals=['🥇','🥈','🥉','④','⑤'];
+    return `<div class="top-item">
+      <div class="top-rank">${medals[i]}</div>
+      <div class="top-photo"><img src="${BASE_IMG+'player_'+encodeURIComponent(p.call)+'.png'}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div class="top-photo-ph" style="display:none">${p.call.slice(0,2)}</div></div>
+      <div class="top-name">${p.call}</div>
+      <div class="top-bar-wrap"><div class="top-bar-bg"><div class="top-bar-fill" style="width:${Math.round(p.total/maxTop*100)}%"></div></div></div>
+      <div class="top-score">${p.total.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  const n=ranking.length||1;
+  const catParts={team:0,comm:0,priv:0};
+  ranking.forEach(p=>Object.entries(p.cats).forEach(([c,v])=>{if(v>0&&catParts[c]!==undefined)catParts[c]++;}));
+  const partBars=catDefs.map(cd=>{
+    const pct=Math.round(catParts[cd.key]/n*100);
+    return `<div class="hbar-item"><div class="hbar-header"><div class="hbar-label">${cd.label} 참여율</div><div class="hbar-val" style="color:${cd.color}">${pct}%</div></div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${cd.color}"></div></div></div>`;
+  }).join('');
+  const card3=`<div class="mstats-card"><div class="mstats-title">TOP 5 소환사</div><div class="top-list">${topItems}</div>
+    <div style="margin-top:20px"><div class="mstats-title">카테고리 참여율</div><div class="hbar-list">${partBars}</div></div></div>`;
+
+  return card1+card2+card3;
+}
+
+function renderMissions(missions,totalPlayers){
   return missions.map(m=>{
-    const allComplete = m.participants.length===totalPlayers;
-    let chips;
-    if(allComplete){
-      chips = `<span class="participant-chip">${m.participants.length}명 전원 완료 · 기본점수</span>`;
-    } else {
-      chips = m.participants.map(p=>{
-        const bonus = p.extra>0;
-        return `<span class="participant-chip ${bonus?'has-bonus':''}">${p.call}${bonus?' +'+p.extra:''}</span>`;
-      }).join('');
-    }
-    return `<div class="mission-card ${catCardClass(m.cat)}">
+    const allDone=m.participants.length===totalPlayers;
+    const chips=allDone
+      ?`<span class="participant-chip">${m.participants.length}명 전원 완료 · 기본점수</span>`
+      :m.participants.map(p=>`<span class="participant-chip ${p.extra>0?'has-bonus':''}">${p.call}${p.extra>0?' +'+p.extra:''}</span>`).join('');
+    return `<div class="mission-card ${catCardCls(m.cat)}">
       <div class="mission-type">${catLabel(m.cat)}</div>
       <div class="mission-name">${m.mission}</div>
       <div class="mission-participants">${chips}</div>
@@ -530,214 +485,55 @@ function renderMissions(missions, totalPlayers){
   }).join('');
 }
 
-function renderSeasonTabs(seasons){
-  return seasons.map(s=>`<div class="season-tab ${s===activeSeason?'active':''}" data-season="${s}">${s}</div>`).join('');
-}
+// ── main render ──
+let state=null, activeSeason=null;
 
-function renderMissionStats(overallData, ranking){
-  const rows = overallData.missions;
-  const totalScore = ranking.reduce((a,p)=>a+p.total,0);
-
-  // ── 1. Category donut (by score) ──
-  const catScore = {team:0, comm:0, priv:0};
-  ranking.forEach(p=>{ Object.entries(p.cats).forEach(([c,v])=>{ if(catScore[c]!==undefined) catScore[c]+=v; }); });
-  const catTotal = Object.values(catScore).reduce((a,b)=>a+b,0)||1;
-  const catDefs = [
-    {key:'team', label:'팀 액티브', color:'#0AC8B9'},
-    {key:'comm', label:'커뮤니케이션', color:'#9B59B6'},
-    {key:'priv', label:'프라이빗', color:'#E74C3C'},
-  ];
-
-  // SVG donut
-  const R=52, cx=60, cy=60, stroke=14;
-  const circ = 2*Math.PI*R;
-  let offset=0;
-  let donutSegs='';
-  catDefs.forEach(cd=>{
-    const pct=catScore[cd.key]/catTotal;
-    const dash=pct*circ;
-    donutSegs+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${cd.color}" stroke-width="${stroke}"
-      stroke-dasharray="${dash} ${circ-dash}" stroke-dashoffset="${-offset}" transform="rotate(-90 ${cx} ${cy})" opacity="0.85"/>`;
-    offset+=dash;
-  });
-  const donutSVG=`<svg class="donut-svg" width="120" height="120" viewBox="0 0 120 120">
-    <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="${stroke}"/>
-    ${donutSegs}
-    <text x="${cx}" y="${cy-6}" text-anchor="middle" fill="#C8AA6E" font-family="Black Han Sans,sans-serif" font-size="13">${((catScore.team/catTotal)*100).toFixed(0)}%</text>
-    <text x="${cx}" y="${cy+10}" text-anchor="middle" fill="#A0B4CC" font-family="Noto Sans KR,sans-serif" font-size="9">팀 미션</text>
-  </svg>`;
-
-  const legendItems = catDefs.map(cd=>{
-    const pct=((catScore[cd.key]/catTotal)*100).toFixed(1);
-    return `<div class="donut-legend-item">
-      <div class="donut-dot" style="background:${cd.color}"></div>
-      <div class="donut-legend-label">${cd.label}</div>
-      <div class="donut-legend-val">${catScore[cd.key].toLocaleString()}<span class="donut-legend-pct">(${pct}%)</span></div>
-    </div>`;
-  }).join('');
-
-  const card1=`<div class="mstats-card">
-    <div class="mstats-title">카테고리별 획득 점수</div>
-    <div class="donut-wrap">
-      ${donutSVG}
-      <div class="donut-legend">${legendItems}</div>
-    </div>
-  </div>`;
-
-  // ── 2. Mission score hbars ──
-  const mScores={};
-  ranking.forEach(p=>{
-    Object.entries(p.missions||{}).forEach(([m,info])=>{
-      mScores[m]=(mScores[m]||0)+info.score;
-    });
-  });
-  const mEntries=Object.entries(mScores).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const mMax=mEntries[0]?.[1]||1;
-  const catColorMap={team:'#0AC8B9',comm:'#9B59B6',priv:'#E74C3C',etc:'#C89B3C'};
-
-  const hbars=mEntries.map(([name,score])=>{
-    const m=rows.find(r=>r.mission===name);
-    const color=catColorMap[m?.cat||'etc'];
-    const pct=Math.round((score/mMax)*100);
-    return `<div class="hbar-item">
-      <div class="hbar-header">
-        <div class="hbar-label">${name}</div>
-        <div class="hbar-val">${score.toLocaleString()}</div>
-      </div>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${color}"></div></div>
-    </div>`;
-  }).join('');
-
-  const card2=`<div class="mstats-card">
-    <div class="mstats-title">미션별 총 획득 점수</div>
-    <div class="hbar-list">${hbars}</div>
-  </div>`;
-
-  // ── 3. Top 5 players + participation rate ──
-  const top5=ranking.slice(0,5);
-  const maxTop=top5[0]?.total||1;
-  const topItems=top5.map((p,i)=>{
-    const pct=Math.round((p.total/maxTop)*100);
-    const medals=['🥇','🥈','🥉','④','⑤'];
-    const imgUrl=BASE_IMG+'player_'+encodeURIComponent(p.call)+'.png';
-    return `<div class="top-item">
-      <div class="top-rank">${medals[i]}</div>
-      <div class="top-photo">
-        <img src="${imgUrl}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-        <div class="top-photo-ph" style="display:none">${p.call.slice(0,2)}</div>
-      </div>
-      <div class="top-name">${p.call}</div>
-      <div class="top-bar-wrap"><div class="top-bar-bg"><div class="top-bar-fill" style="width:${pct}%"></div></div></div>
-      <div class="top-score">${p.total.toLocaleString()}</div>
-    </div>`;
-  }).join('');
-
-  // participation rate per category
-  const n=ranking.length||1;
-  const catParts={team:0,comm:0,priv:0};
-  ranking.forEach(p=>{ Object.entries(p.cats).forEach(([c,v])=>{ if(v>0&&catParts[c]!==undefined) catParts[c]++; }); });
-  const partBars=catDefs.map(cd=>{
-    const pct=Math.round((catParts[cd.key]/n)*100);
-    return `<div class="hbar-item">
-      <div class="hbar-header">
-        <div class="hbar-label">${cd.label} 참여율</div>
-        <div class="hbar-val" style="color:${cd.color}">${pct}%</div>
-      </div>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${cd.color}"></div></div>
-    </div>`;
-  }).join('');
-
-  const card3=`<div class="mstats-card">
-    <div class="mstats-title">TOP 5 소환사</div>
-    <div class="top-list">${topItems}</div>
-    <div style="margin-top:20px"><div class="mstats-title">카테고리 참여율</div><div class="hbar-list">${partBars}</div></div>
-  </div>`;
-
-  return card1+card2+card3;
-}
-
-function renderDashboard(){
+function render(){
   if(!state) return;
+  const today=new Date().toLocaleDateString('ko-KR');
+  document.getElementById('headerBadge').textContent=activeSeason?`HOL · ${activeSeason}`:'HOL';
+  document.getElementById('headerInfo').textContent=`${today} 기준 · 총 ${state.totalPlayers}명의 소환사`;
+  document.getElementById('footerDate').textContent=`· ${today}`;
+  document.getElementById('statPlayers').textContent=state.totalPlayers;
+  document.getElementById('statMissions').textContent=state.totalMissions;
+  document.getElementById('statCerts').textContent=state.totalCerts.toLocaleString();
+  document.getElementById('statTotal').textContent=state.totalScore.toLocaleString();
+  document.getElementById('leaderboard').innerHTML=renderLeaderboard(state.overall.ranking);
 
-  // Header
-  document.getElementById('titleMain').textContent = 'Hanaro of Legends';
-  document.getElementById('headerBadge').textContent = activeSeason ? `HOL · ${activeSeason}` : 'HOL';
-  const today = new Date();
-  const dateStr = today.toLocaleDateString('ko-KR');
-  document.getElementById('headerInfo').textContent = dateStr + ' 기준 · 총 ' + state.totalPlayers + '명의 소환사';
-  document.getElementById('footerDate').textContent = ' · ' + dateStr;
-
-  // Summary (always overall)
-  document.getElementById('statPlayers').textContent = state.totalPlayers;
-  document.getElementById('statMissions').textContent = state.overallData.missions.length;
-  document.getElementById('statCerts').textContent = state.totalCerts.toLocaleString();
-  document.getElementById('statTotal').textContent = state.totalScore.toLocaleString();
-
-  // Leaderboard (overall)
-  document.getElementById('leaderboard').innerHTML = renderLeaderboard(state.overallData.ranking);
-
-  // Season tabs
-  document.getElementById('seasonTabs').innerHTML = renderSeasonTabs(state.seasons);
-  document.querySelectorAll('.season-tab').forEach(tab=>{
-    tab.addEventListener('click',()=>{
-      activeSeason = tab.dataset.season;
-      document.querySelectorAll('.season-tab').forEach(t=>t.classList.toggle('active',t===tab));
-      const sd = state.bySeasonData[activeSeason];
-      document.getElementById('tierGrid').innerHTML = renderTier(sd.ranking);
-    });
-  });
-
-  // Tier (active season)
-  const sd = state.bySeasonData[activeSeason]||state.overallData;
-  document.getElementById('tierGrid').innerHTML = renderTier(sd.ranking);
-
-  // Mission stats
-  document.getElementById('mstatsGrid').innerHTML = renderMissionStats(state.overallData, state.overallData.ranking);
-
-  // Missions (overall)
-  document.getElementById('missionGrid').innerHTML = renderMissions(state.overallData.missions, state.totalPlayers);
-
-  // Show dashboard
+  document.getElementById('seasonTabs').innerHTML=state.seasons.map(s=>
+    `<div class="season-tab ${s===activeSeason?'active':''}" data-season="${s}">${s}</div>`).join('');
+  document.querySelectorAll('.season-tab').forEach(t=>t.addEventListener('click',()=>{
+    activeSeason=t.dataset.season;
+    document.querySelectorAll('.season-tab').forEach(x=>x.classList.toggle('active',x===t));
+    document.getElementById('tierGrid').innerHTML=renderTier(state.bySeasonData[activeSeason].ranking);
+  }));
+  document.getElementById('tierGrid').innerHTML=renderTier((state.bySeasonData[activeSeason]||state.overall).ranking);
+  document.getElementById('mstatsGrid').innerHTML=renderMissionStats(state.overall);
+  document.getElementById('missionGrid').innerHTML=renderMissions(state.overall.missions,state.totalPlayers);
   document.getElementById('dashboard').classList.remove('hidden');
 }
 
-// ── File input ──
-function handleFile(file){
-  if(!file) return;
-  document.getElementById('uploadFilename').textContent = '✅ '+file.name;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    try {
-      const rows = parseExcel(new Uint8Array(e.target.result));
-      state = buildState(rows);
-      activeSeason = state.seasons[state.seasons.length-1]||null;
-      renderDashboard();
-      // Hide big upload zone, show FAB
-      document.getElementById('uploadZone').classList.add('hidden');
-      const fab = document.getElementById('uploadFab');
-      fab.classList.remove('hidden');
-    } catch(err){
-      alert('파일 파싱 오류: '+err.message);
-    }
-  };
-  reader.readAsArrayBuffer(file);
+// ── load ──
+async function loadData(){
+  document.getElementById('loadingState').classList.remove('hidden');
+  document.getElementById('errorState').classList.add('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  try {
+    const res=await fetch(JSON_URL+'?t='+Date.now());
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const rows=await res.json();
+    state=buildState(rows);
+    activeSeason=state.seasons[state.seasons.length-1]||null;
+    render();
+    document.getElementById('loadingState').classList.add('hidden');
+  } catch(e){
+    console.error(e);
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('errorState').classList.remove('hidden');
+  }
 }
 
-document.getElementById('fileInput').addEventListener('change', e=>handleFile(e.target.files[0]));
-document.getElementById('fileInputFab').addEventListener('change', e=>handleFile(e.target.files[0]));
-
-const zone = document.getElementById('uploadZone');
-zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag-over');});
-zone.addEventListener('dragleave',()=>zone.classList.remove('drag-over'));
-zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag-over');handleFile(e.dataTransfer.files[0]);});
-
-// Also allow drop anywhere on page after file loaded
-document.addEventListener('dragover',e=>e.preventDefault());
-document.addEventListener('drop',e=>{
-  e.preventDefault();
-  if(document.getElementById('uploadFab').classList.contains('hidden')) return;
-  handleFile(e.dataTransfer.files[0]);
-});
+loadData();
 </script>
 </body>
 </html>
