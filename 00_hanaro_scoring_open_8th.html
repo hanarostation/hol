@@ -84,9 +84,10 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .player-realname{font-size:11px;color:var(--text-sub);margin-top:2px;}
 .mission-bars{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
 .mission-bar{height:22px;border-radius:3px;display:flex;align-items:center;font-size:10px;font-weight:700;letter-spacing:.5px;padding:0 7px;white-space:nowrap;}
-.bar-team{background:rgba(10,200,185,.18);border:1px solid var(--blue-dark);color:var(--blue);}
-.bar-comm{background:rgba(123,47,190,.18);border:1px solid var(--purple);color:#B87FFF;}
-.bar-private{background:rgba(198,47,47,.18);border:1px solid var(--red);color:#FF7F7F;}
+.bar-team{background:rgba(10,200,185,.18);border:1px solid #0593A2;color:#0AC8B9;}
+.bar-comm{background:rgba(123,47,190,.18);border:1px solid #7B2FBE;color:#B87FFF;}
+.bar-private{background:rgba(230,126,34,.18);border:1px solid #D35400;color:#F39C12;}
+.bar-model{background:rgba(231,76,60,.18);border:1px solid #C0392B;color:#FF6B6B;}
 .score-bar-wrap{width:100px;}
 .score-bar-bg{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;}
 .score-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue-dark),var(--gold));}
@@ -155,13 +156,15 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .mission-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
 .mission-card{background:linear-gradient(135deg,var(--card-bg),#0A1830);border:1px solid var(--card-border);border-radius:8px;padding:18px;position:relative;overflow:hidden;}
 .mission-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;}
-.mission-card.team::before{background:var(--blue);}
-.mission-card.comm::before{background:var(--purple);}
-.mission-card.priv::before{background:var(--red);}
+.mission-card.team::before{background:#0AC8B9;}
+.mission-card.comm::before{background:#9B59B6;}
+.mission-card.priv::before{background:#E67E22;}
+.mission-card.model::before{background:#E74C3C;}
 .mission-type{font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
-.mission-card.team .mission-type{color:var(--blue);}
+.mission-card.team .mission-type{color:#0AC8B9;}
 .mission-card.comm .mission-type{color:#B87FFF;}
-.mission-card.priv .mission-type{color:#FF7F7F;}
+.mission-card.priv .mission-type{color:#F39C12;}
+.mission-card.model .mission-type{color:#FF6B6B;}
 .mission-name{font-family:'Black Han Sans',sans-serif;font-size:16px;color:var(--text-main);margin-bottom:12px;}
 .mission-participants{display:flex;flex-wrap:wrap;gap:6px;}
 .participant-chip{font-size:11px;padding:3px 8px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--text-sub);}
@@ -269,11 +272,12 @@ function detectCat(v){
   if(s.includes('팀')) return 'team';
   if(s.includes('커뮤')) return 'comm';
   if(s.includes('프라이')) return 'priv';
+  if(s.includes('모델')) return 'model';
   return 'etc';
 }
-function catLabel(c){return {team:'팀 액티브 미션',comm:'커뮤니케이션 미션',priv:'프라이빗 미션',etc:'기타'}[c]||c;}
-function catBarCls(c){return {team:'bar-team',comm:'bar-comm',priv:'bar-private'}[c]||'bar-team';}
-function catCardCls(c){return {team:'team',comm:'comm',priv:'priv'}[c]||'team';}
+function catLabel(c){return {team:'팀 액티브 미션',comm:'커뮤니케이션 미션',priv:'프라이빗 미션',model:'모델링 미션',etc:'기타'}[c]||c;}
+function catBarCls(c){return {team:'bar-team',comm:'bar-comm',priv:'bar-private',model:'bar-model'}[c]||'bar-team';}
+function catCardCls(c){return {team:'team',comm:'comm',priv:'priv',model:'model'}[c]||'team';}
 
 // ── build state ──
 function buildState(rows){
@@ -307,7 +311,7 @@ function buildSeason(rows,CN,CC,CCAT,CM,CS,CE){
     const score=Number(r[CS]||0);
     const extra=Number(r[CE]||0);
     if(!name) return;
-    if(!pm[name]) pm[name]={name,call,team,total:0,cats:{team:0,comm:0,priv:0},missions:{}};
+    if(!pm[name]) pm[name]={name,call,team,total:0,cats:{team:0,comm:0,priv:0,model:0},missions:{}};
     pm[name].call=call;
     pm[name].team=team;
     pm[name].total+=score;
@@ -324,7 +328,7 @@ function buildSeason(rows,CN,CC,CCAT,CM,CS,CE){
   const teamCatScores={};
   Object.values(pm).forEach(p=>{
     teamScores[p.team]=(teamScores[p.team]||0)+p.total;
-    if(!teamCatScores[p.team]) teamCatScores[p.team]={team:0,comm:0,priv:0};
+    if(!teamCatScores[p.team]) teamCatScores[p.team]={team:0,comm:0,priv:0,model:0};
     Object.entries(p.cats).forEach(([c,v])=>{ if(teamCatScores[p.team][c]!==undefined) teamCatScores[p.team][c]+=v; });
   });
 
@@ -422,10 +426,15 @@ function renderTier(ranking){
 
 function renderMissionStats(overall){
   const {ranking,missions}=overall;
-  const catScore={team:0,comm:0,priv:0};
+  const catScore={team:0,comm:0,priv:0,model:0};
   ranking.forEach(p=>Object.entries(p.cats).forEach(([c,v])=>{if(catScore[c]!==undefined)catScore[c]+=v;}));
   const catTotal=Object.values(catScore).reduce((a,b)=>a+b,0)||1;
-  const catDefs=[{key:'team',label:'팀 액티브',color:'#0AC8B9'},{key:'comm',label:'커뮤니케이션',color:'#9B59B6'},{key:'priv',label:'프라이빗',color:'#E74C3C'}];
+  const catDefs=[
+    {key:'team',  label:'팀 액티브',    color:'#0AC8B9'},
+    {key:'comm',  label:'커뮤니케이션', color:'#9B59B6'},
+    {key:'priv',  label:'프라이빗',     color:'#E67E22'},
+    {key:'model', label:'모델링',       color:'#E74C3C'},
+  ];
 
   const R=52,cx=60,cy=60,stroke=14,circ=2*Math.PI*R;
   let offset=0,segs='';
@@ -455,7 +464,7 @@ function renderMissionStats(overall){
   }));
   const mEntries=Object.entries(mScores).sort((a,b)=>b[1]-a[1]).slice(0,10);
   const mMax=mEntries[0]?.[1]||1;
-  const colorMap={team:'#0AC8B9',comm:'#9B59B6',priv:'#E74C3C',etc:'#C89B3C'};
+  const colorMap={team:'#0AC8B9',comm:'#9B59B6',priv:'#E67E22',model:'#E74C3C',etc:'#C89B3C'};
   const hbars=mEntries.map(([name,score])=>{
     const m=missions.find(r=>r.mission===name);
     const color=colorMap[m?.cat||'etc'];
@@ -466,8 +475,8 @@ function renderMissionStats(overall){
 
   // card3: TOP5 소환사의 카테고리별 점수 시각화
   const top5=ranking.slice(0,5);
-  const catColors={team:'#0AC8B9',comm:'#9B59B6',priv:'#E74C3C'};
-  const catLabels={team:'팀 액티브',comm:'커뮤니케이션',priv:'프라이빗'};
+  const catColors={team:'#0AC8B9',comm:'#9B59B6',priv:'#E67E22',model:'#E74C3C'};
+  const catLabels={team:'팀 액티브',comm:'커뮤니케이션',priv:'프라이빗',model:'모델링'};
   const allCatMax=Math.max(...top5.flatMap(p=>Object.values(p.cats)),1);
   const medals=['🥇','🥈','🥉','④','⑤'];
 
@@ -500,8 +509,14 @@ function renderMissionStats(overall){
 
 function renderTeamStats(overall){
   const {teamScores,teamCatScores}=overall;
-  const catDefs=[{key:'team',label:'팀 액티브',color:'#0AC8B9'},{key:'comm',label:'커뮤니케이션',color:'#9B59B6'},{key:'priv',label:'프라이빗',color:'#E74C3C'}];
-  const teamColors=['#FFD700','#0AC8B9','#9B59B6','#E74C3C'];
+  const catDefs=[
+    {key:'team',  label:'팀 액티브',    color:'#0AC8B9'},
+    {key:'comm',  label:'커뮤니케이션', color:'#9B59B6'},
+    {key:'priv',  label:'프라이빗',     color:'#E67E22'},
+    {key:'model', label:'모델링',       color:'#E74C3C'},
+  ];
+  // 팀명 색상: 카테고리 색상(청록/보라/주황/빨강)과 겹치지 않게 → 골드/민트그린/스카이블루/핑크 계열
+  const teamColors=['#F1C40F','#2ECC71','#3498DB','#FF69B4','#A29BFE'];
 
   // Card 1: 팀별 총 획득 점수
   const teamEntries=Object.entries(teamScores||{}).sort((a,b)=>b[1]-a[1]);
