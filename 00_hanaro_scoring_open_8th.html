@@ -290,14 +290,21 @@ function buildState(rows){
   seasons.forEach(s=>{ bySeasonData[s]=buildSeason(rows.filter(r=>String(r[CSEA]||'시즌1')===s),CN,CC,CCAT,CM,CS,CE); });
   const overall=buildSeason(rows,CN,CC,CCAT,CM,CS,CE);
 
-  // 데이터에서 가장 마지막 인증 일자 추출
+  // 데이터에서 가장 마지막 인증 일자 추출 (문자열 정렬로 정확하게)
   let latestDate = null;
+  let latestStr = '';
   rows.forEach(r=>{
-    const raw = String(r[CDATE]||'').trim();
-    if(!raw || raw==='-') return;
-    const d = new Date(raw);
-    if(!isNaN(d) && (!latestDate || d > latestDate)) latestDate = d;
+    const raw = String(r[CDATE]||'').trim().slice(0,19); // 'YYYY-MM-DD HH:MM:SS'
+    if(!raw || raw==='-' || raw.length < 10) return;
+    if(raw > latestStr) { latestStr = raw; }
   });
+  if(latestStr){
+    // 'YYYY-MM-DD HH:MM:SS' → 직접 파싱 (로컬 시간 기준)
+    const [datePart, timePart='00:00:00'] = latestStr.split(' ');
+    const [y,mo,d2] = datePart.split('-').map(Number);
+    const [h2,mi,s] = timePart.split(':').map(Number);
+    latestDate = new Date(y, mo-1, d2, h2, mi, s||0);
+  }
 
   return {
     seasons, bySeasonData, overall,
