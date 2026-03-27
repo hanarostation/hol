@@ -290,20 +290,19 @@ function buildState(rows){
   seasons.forEach(s=>{ bySeasonData[s]=buildSeason(rows.filter(r=>String(r[CSEA]||'시즌1')===s),CN,CC,CCAT,CM,CS,CE); });
   const overall=buildSeason(rows,CN,CC,CCAT,CM,CS,CE);
 
-  // 데이터에서 가장 마지막 인증 일자 추출 (문자열 정렬로 정확하게)
-  let latestDate = null;
+  // 데이터에서 가장 마지막 인증 일자 추출 — 문자열 비교로 최댓값 선택
   let latestStr = '';
   rows.forEach(r=>{
-    const raw = String(r[CDATE]||'').trim().slice(0,19); // 'YYYY-MM-DD HH:MM:SS'
-    if(!raw || raw==='-' || raw.length < 10) return;
-    if(raw > latestStr) { latestStr = raw; }
+    const raw = String(r[CDATE]||'').trim().slice(0,19);
+    if(raw.length >= 10 && raw > latestStr) latestStr = raw;
   });
+  let latestDate = null;
   if(latestStr){
-    // 'YYYY-MM-DD HH:MM:SS' → 직접 파싱 (로컬 시간 기준)
-    const [datePart, timePart='00:00:00'] = latestStr.split(' ');
-    const [y,mo,d2] = datePart.split('-').map(Number);
-    const [h2,mi,s] = timePart.split(':').map(Number);
-    latestDate = new Date(y, mo-1, d2, h2, mi, s||0);
+    // Date 객체 변환 없이 문자열 직접 파싱 → 로컬 시간 그대로 사용
+    const [datePart='', timePart='00:00'] = latestStr.split(' ');
+    const [y,mo,dy] = datePart.split('-').map(Number);
+    const [hh,mm] = timePart.split(':').map(Number);
+    latestDate = { y, mo, dy, hh, mm };
   }
 
   return {
@@ -585,12 +584,14 @@ let state=null, activeSeason=null;
 
 function render(){
   if(!state) return;
-  const d = state.latestDate || new Date();
-  const today = d.toLocaleDateString('ko-KR');
-  const h = d.getHours();
-  const m = d.getMinutes();
-  const timeStr = `${h<12?'오전':'오후'} ${h%12||12}시${m>0?' '+m+'분':''}`;
-  const dateTime = `최종 업데이트 : ${today} ${timeStr}`;
+  let dateTime = '최종 업데이트 : 날짜 없음';
+  if(state.latestDate){
+    const {y,mo,dy,hh,mm} = state.latestDate;
+    const ampm = hh < 12 ? '오전' : '오후';
+    const h12  = hh % 12 || 12;
+    const mStr = mm > 0 ? ` ${mm}분` : '';
+    dateTime = `최종 업데이트 : ${y}. ${mo}. ${dy}. ${ampm} ${h12}시${mStr}`;
+  }
   document.getElementById('headerBadge').textContent=activeSeason?`HOL · ${activeSeason}`:'HOL';
   document.getElementById('headerInfo').textContent=`${dateTime} · 총 ${state.totalPlayers}명의 소환사`;
   document.getElementById('footerDate').textContent=`· ${dateTime}`;
