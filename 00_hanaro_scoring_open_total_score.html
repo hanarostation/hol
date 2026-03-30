@@ -613,9 +613,16 @@ function renderTeamStats(overall){
 function renderMissions(missions,totalPlayers){
   return missions.map(m=>{
     const allDone=m.participants.length===totalPlayers;
-    const chips=allDone
-      ?`<span class="participant-chip">${m.participants.length}명 전원 완료 · 기본점수</span>`
-      :m.participants.map(p=>`<span class="participant-chip ${p.extra>0?'has-bonus':''}">${p.call}${p.extra>0?' +'+p.extra:''}</span>`).join('');
+    let chips;
+    if(allDone){
+      chips=`<span class="participant-chip">${m.participants.length}명 전원 완료 · 기본점수</span>`;
+    } else {
+      const MAX=5;
+      const shown=m.participants.slice(0,MAX);
+      const rest=m.participants.length-MAX;
+      chips=shown.map(p=>`<span class="participant-chip ${p.extra>0?'has-bonus':''}">${p.call}${p.extra>0?' +'+p.extra:''}</span>`).join('');
+      if(rest>0) chips+=`<span class="participant-chip" style="border-color:var(--text-sub);opacity:.6">+${rest}명</span>`;
+    }
     // 날짜 파싱
     let dateLabel = '';
     if(m.latestDate){
