@@ -321,38 +321,77 @@ function catCardCls(c){return {team:'team',comm:'comm',priv:'priv',model:'model'
 // ── build state ──
 function buildState(rows){
   if(!rows||!rows.length) return {seasons:[],bySeasonData:{},overall:{ranking:[],missions:[],maxScore:1,teamScores:{},teamCatScores:{}},totalPlayers:0,totalMissions:0,totalCerts:0,totalScore:0,latestDate:null};
-  const C = k => Object.keys(rows[0]).find(x=>x.includes(k))||null;
+
+  const keys = Object.keys(rows[0]);
+  const C = k => keys.find(x=>x===k) || keys.find(x=>x.includes(k)) || null;
   const CN=C('이름'), CC=C('콜네임'), CCAT=C('분류'), CM=C('미션명'),
         CS=C('획득점수'), CE=C('추가점수'), CSEA=C('시즌'),
-        CDATE=C('인증 일자')||C('일자')||Object.keys(rows[0])[0];
+        CDATE=C('인증 일자') || keys.find(x=>x.includes('일자')) || keys[0];
 
   const seasons=[...new Set(rows.map(r=>String(r[CSEA]||'시즌1')))].sort();
-  const bySeasonData={};
-  seasons.forEach(s=>{ bySeasonData[s]=buildSeason(rows.filter(r=>String(r[CSEA]||'시즌1')===s),CN,CC,CCAT,CM,CS,CE); });
-  const overall=buildSeason(rows,CN,CC,CCAT,CM,CS,CE);
 
-  // 날짜: 가장 마지막 인증 일자 (문자열 비교)
+  // 기수별 시즌 데이터
+  const bySeasonData={};
+  seasons.forEach(s=>{
+    bySeasonData[s]=buildSeason(rows.filter(r=>String(r[CSEA]||'시즌1')===s),CN,CC,CCAT,CM,CS,CE);
+  });
+
+  // overall: 기수별로 티어를 따로 계산한 뒤 합침
+  // → activeGen이 __all__이면 기수별 buildSeason 결과를 합산
+  const overall = buildSeasonMerged(rows, seasons, CSEA, CN, CC, CCAT, CM, CS, CE);
+
+  // 날짜: 가장 마지막 인증 일자
   let latestStr = '';
   rows.forEach(r=>{
-    const raw = String(r[CDATE]||'').trim().slice(0,19);
+    const raw = String(r[CDATE]||'').trim().replace('T',' ').slice(0,19);
     if(raw.length >= 10 && raw > latestStr) latestStr = raw;
   });
   let latestDate = null;
   if(latestStr){
-    const [datePart='', timePart='00:00'] = latestStr.split(' ');
-    const [y,mo,dy] = datePart.split('-').map(Number);
-    const [hh,mm] = timePart.split(':').map(Number);
-    if(y && mo && dy) latestDate = { y, mo, dy, hh:hh||0, mm:mm||0 };
+    const parts = latestStr.split(' ');
+    const dateParts = (parts[0]||'').split('-').map(Number);
+    const timeParts = (parts[1]||'0:0').split(':').map(Number);
+    const [y,mo,dy] = dateParts;
+    const [hh,mm] = timeParts;
+    if(y>=2000 && mo>=1 && dy>=1) latestDate = {y, mo, dy, hh:hh||0, mm:mm||0};
   }
 
   return {
     seasons, bySeasonData, overall,
     totalPlayers: overall.ranking.length,
     totalMissions: overall.missions.length,
-    totalCerts: rows.length,
+    totalCerts: rows.length,         // ← 필터된 rows 기준
     totalScore: overall.ranking.reduce((a,p)=>a+p.total,0),
     latestDate,
   };
+}
+
+// 기수별로 티어를 각각 계산한 뒤 합산 (전체랭킹용)
+function buildSeasonMerged(rows, seasons, CSEA, CN, CC, CCAT, CM, CS, CE){
+  // 기수 컬럼이 있으면 기수별로 티어 계산, 없으면 전체 한 번에
+  const genCol = Object.keys(rows[0]||{}).find(x=>x.includes('기수'));
+  if(!genCol){
+    return buildSeason(rows, CN, CC, CCAT, CM, CS, CE);
+  }
+  const gens = [...new Set(rows.map(r=>String(r[genCol]||'').trim()).filter(Boolean))];
+  if(gens.length <= 1){
+    return buildSeason(rows, CN, CC, CCAT, CM, CS, CE);
+  }
+  // 기수별로 각각 buildSeason → 티어 배정 → 전체 합산
+  const allRankings = [];
+  gens.forEach(g=>{
+    const genRows = rows.filter(r=>String(r[genCol]||'').trim()===g);
+    const sd = buildSeason(genRows, CN, CC, CCAT, CM, CS, CE);
+    allRankings.push(...sd.ranking);
+  });
+  // missions, teamScores는 전체 기준
+  const overall = buildSeason(rows, CN, CC, CCAT, CM, CS, CE);
+  // ranking은 기수별 티어 배정된 버전으로 교체, 전체 점수 기준 재정렬
+  allRankings.sort((a,b)=>b.total-a.total);
+  const maxScore = allRankings[0]?.total||1;
+  allRankings.forEach(p=>{ p.barPct=Math.round((p.total/maxScore)*100); });
+  overall.ranking = allRankings;
+  return overall;
 }
 
 function buildSeason(rows,CN,CC,CCAT,CM,CS,CE){
