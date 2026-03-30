@@ -689,10 +689,10 @@ async function loadData(){
     const gens = [...new Set(allRows.map(r=>String(r['기수']||'').trim()).filter(Boolean))]
       .sort((a,b)=>{ const na=parseInt(a),nb=parseInt(b); return isNaN(na)||isNaN(nb)?a.localeCompare(b):na-nb; });
 
-    activeGen = activeGen && gens.includes(activeGen) ? activeGen : gens[gens.length-1];
+    activeGen = (activeGen==='__all__') ? '__all__' : (activeGen && gens.includes(activeGen) ? activeGen : gens[gens.length-1]);
     renderGenSelector(gens);
 
-    const filtered = allRows.filter(r=>String(r['기수']||'').trim()===activeGen);
+    const filtered = activeGen==='__all__' ? allRows : allRows.filter(r=>String(r['기수']||'').trim()===activeGen);
     state = buildState(filtered);
     activeSeason = state.seasons[state.seasons.length-1]||null;
     render();
