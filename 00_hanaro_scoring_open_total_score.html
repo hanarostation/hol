@@ -184,10 +184,13 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .hidden{display:none!important;}
 
 /* GENERATION SELECTOR */
-.gen-selector{position:fixed;top:20px;right:24px;z-index:200;display:flex;gap:8px;align-items:center;}
+.gen-selector{position:fixed;top:20px;left:20px;z-index:200;display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:calc(100vw - 40px);}
 .gen-btn{font-family:'Black Han Sans',sans-serif;font-size:13px;letter-spacing:2px;padding:8px 16px;border-radius:8px;border:1px solid var(--card-border);background:rgba(14,30,61,.9);backdrop-filter:blur(8px);color:var(--text-sub);cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(0,0,0,.4);}
 .gen-btn:hover{border-color:var(--gold);color:var(--gold);}
 .gen-btn.active{border-color:var(--gold-bright);background:rgba(255,215,0,.1);color:var(--gold-bright);box-shadow:0 0 16px rgba(255,215,0,.25);}
+.gen-btn.all{border-color:var(--blue-dark);color:var(--blue);}
+.gen-btn.all.active{border-color:var(--blue);background:rgba(10,200,185,.1);color:var(--blue);box-shadow:0 0 16px rgba(10,200,185,.25);}
+@media(max-width:600px){.gen-btn{font-size:11px;padding:6px 12px;letter-spacing:1px;}}
 </style>
 </head>
 <body>
@@ -251,7 +254,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
     <div class="mission-grid" id="missionGrid"></div>
 
     <div class="footer">
-      HANARO OF LEGENDS · 8기 <span id="footerDate"></span>
+      HANARO OF LEGENDS · <span id="footerGen">—</span> <span id="footerDate"></span>
       <br><span style="color:var(--gold);margin-top:6px;display:block">⚡ 다음 미션에서 순위가 뒤집힐 수 있습니다 ⚡</span>
     </div>
 
@@ -275,19 +278,21 @@ let activeGen = null;
 function renderGenSelector(gens){
   const el = document.getElementById('genSelector');
   if(!el) return;
-  el.innerHTML = gens.map(g =>
+  const genBtns = gens.map(g =>
     `<div class="gen-btn ${g===activeGen?'active':''}" onclick="selectGen('${g}')">${g}</div>`
   ).join('');
+  const allBtn = `<div class="gen-btn all ${activeGen==='__all__'?'active':''}" onclick="selectGen('__all__')">전체랭킹</div>`;
+  el.innerHTML = genBtns + allBtn;
 }
 
 function selectGen(gen){
   activeGen = gen;
-  // 버튼 활성화 업데이트
-  document.querySelectorAll('.gen-btn').forEach(b=>
-    b.classList.toggle('active', b.textContent===gen)
-  );
-  // 해당 기수 데이터만 필터링해서 렌더
-  const filtered = allRows.filter(r => String(r['기수']||'').trim() === gen);
+  document.querySelectorAll('.gen-btn').forEach(b=>{
+    const isAll = b.classList.contains('all');
+    const match = isAll ? gen==='__all__' : b.textContent===gen;
+    b.classList.toggle('active', match);
+  });
+  const filtered = gen==='__all__' ? allRows : allRows.filter(r=>String(r['기수']||'').trim()===gen);
   state = buildState(filtered);
   activeSeason = state.seasons[state.seasons.length-1]||null;
   render();
@@ -646,8 +651,10 @@ function render(){
     const mStr = mm > 0 ? ` ${mm}분` : '';
     dateTime = `최종 업데이트 : ${y}. ${mo}. ${dy}. ${ampm} ${h12}시${mStr}`;
   }
-  document.getElementById('headerBadge').textContent=activeSeason?`HOL · ${activeGen} · ${activeSeason}`:`HOL · ${activeGen}`;
+  const genLabel = activeGen==='__all__' ? '전체랭킹' : (activeGen||'');
+  document.getElementById('headerBadge').textContent=activeSeason?`HOL · ${genLabel} · ${activeSeason}`:`HOL · ${genLabel}`;
   document.getElementById('headerInfo').textContent=`${dateTime} · 총 ${state.totalPlayers}명의 소환사`;
+  document.getElementById('footerGen').textContent=genLabel;
   document.getElementById('footerDate').textContent=`· ${dateTime}`;
   document.getElementById('statPlayers').textContent=state.totalPlayers;
   document.getElementById('statMissions').textContent=state.totalMissions;
