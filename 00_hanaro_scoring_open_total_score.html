@@ -221,7 +221,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
   <div class="center-state hidden" id="errorState">
     <div class="icon">⚠️</div>
     <div class="msg">데이터를 불러올 수 없습니다</div>
-    <div class="sub">구글 시트 ID를 확인하거나 시트 공유 설정을 확인해주세요</div>
+    <div class="sub">score/Hanaro_Scoring.json 파일을 확인해주세요</div>
   </div>
 
   <!-- DASHBOARD -->
@@ -265,33 +265,8 @@ body::before{content:'';position:fixed;inset:0;background-image:
 </div>
 
 <script>
-const BASE_IMG = 'images/';
-
-// ★ 구글 시트 ID 여기에 입력하세요
-const SHEET_ID  = '1pw6es0iIFtR5K7hTOMnMMhk-hsTmE-wgvSxYMEctSKc';
-const SHEET_GID = '0'; // 시트 탭 번호 (기본 첫번째 탭 = 0)
-const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
-
-// CSV → JSON 파싱
-function parseCSV(text){
-  const lines = text.trim().split('\n');
-  const headers = lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
-  return lines.slice(1).map(line=>{
-    // 쉼표 포함 셀(따옴표로 감싸진 것) 처리
-    const cols = [];
-    let cur='', inQ=false;
-    for(let i=0;i<line.length;i++){
-      const c=line[i];
-      if(c==='"'){ inQ=!inQ; }
-      else if(c===','&&!inQ){ cols.push(cur.trim()); cur=''; }
-      else { cur+=c; }
-    }
-    cols.push(cur.trim());
-    const row={};
-    headers.forEach((h,i)=>{ row[h]=(cols[i]||'').replace(/^"|"$/g,''); });
-    return row;
-  }).filter(r=>Object.values(r).some(v=>v!==''));
-}
+const BASE_IMG   = 'images/';
+const SHEET_API  = 'https://script.google.com/macros/s/AKfycbzXdpWtcrT-GC4rUc-puqpw4gKzfZ0hPNDGyI5d4V5IHtizfDQtwhPb9o9n3ly8PsOLfA/exec';
 
 let allRows   = [];
 let activeGen = null;
@@ -700,12 +675,10 @@ async function loadData(){
   document.getElementById('errorState').classList.add('hidden');
   document.getElementById('dashboard').classList.add('hidden');
   try {
-    const res = await fetch(SHEET_URL+'&cachebust='+Date.now());
+    const res = await fetch(SHEET_API);
     if(!res.ok) throw new Error('HTTP '+res.status);
-    const text = await res.text();
-    allRows = parseCSV(text);
+    allRows = await res.json();
 
-    // 기수 목록 추출 (숫자 오름차순)
     const gens = [...new Set(allRows.map(r=>String(r['기수']||'').trim()).filter(Boolean))]
       .sort((a,b)=>{ const na=parseInt(a),nb=parseInt(b); return isNaN(na)||isNaN(nb)?a.localeCompare(b):na-nb; });
 
