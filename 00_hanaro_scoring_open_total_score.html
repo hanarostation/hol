@@ -285,13 +285,16 @@ function renderGenSelector(gens){
   el.innerHTML = genBtns + allBtn;
 }
 
+let genCol = '기수'; // 기수 컬럼명 (데이터 로드 후 동적으로 설정)
+
 function selectGen(gen){
   activeGen = gen;
   document.querySelectorAll('.gen-btn').forEach(b=>{
     const isAll = b.classList.contains('all');
     b.classList.toggle('active', isAll ? gen==='__all__' : b.textContent===gen);
   });
-  const filtered = gen==='__all__' ? allRows : allRows.filter(r=>String(r['기수']||'').trim()===gen);
+  const filtered = gen==='__all__' ? allRows : allRows.filter(r=>String(r[genCol]||'').trim()===gen);
+  console.log('[HOL] selectGen:', gen, '| filtered:', filtered.length, '| genCol:', genCol);
   state = buildState(filtered);
   activeSeason = state.seasons[state.seasons.length-1]||null;
   render();
@@ -740,8 +743,12 @@ async function loadData(){
     if(!res.ok) throw new Error('HTTP '+res.status);
     allRows = await res.json();
 
+    // 기수 컬럼명 동적 탐지
+    const keys0 = Object.keys(allRows[0]||{});
+    genCol = keys0.find(k=>k==='기수') || keys0.find(k=>k.includes('기수')) || '기수';
+    console.log('[HOL] 전체 rows:', allRows.length, '| genCol:', genCol, '| 컬럼목록:', keys0);
     // 기수 목록 추출 (숫자 오름차순)
-    const gens = [...new Set(allRows.map(r=>String(r['기수']||'').trim()).filter(Boolean))]
+    const gens = [...new Set(allRows.map(r=>String(r[genCol]||'').trim()).filter(Boolean))]
       .sort((a,b)=>{ const na=parseInt(a),nb=parseInt(b); return isNaN(na)||isNaN(nb)?a.localeCompare(b):na-nb; });
 
     // 기수 버튼 렌더 (activeGen 유지, 없으면 __all__ 유지)
@@ -749,7 +756,7 @@ async function loadData(){
     renderGenSelector(gens);
 
     // 선택된 기수 필터링
-    const filtered = activeGen==='__all__' ? allRows : allRows.filter(r=>String(r['기수']||'').trim()===activeGen);
+    const filtered = activeGen==='__all__' ? allRows : allRows.filter(r=>String(r[genCol]||'').trim()===activeGen);
     state = buildState(filtered);
     activeSeason = state.seasons[state.seasons.length-1]||null;
     render();
