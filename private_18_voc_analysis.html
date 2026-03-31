@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>고객 VOC 응대 데이터 분석 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e; --panel: #252310; --card: #2e2c14; --border: #4a4620;
+      --accent: #8a8230; --accent-dim: #605c20; --accent-light: #c0b84a;
+      --text-main: #f0eccc; --text-sub: #a09c60; --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #111008; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #1e1c08, #1c1a0e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .data-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin: 14px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .data-card-info { flex: 1; }
+    .data-card-title { font-size: 14px; font-weight: 500; color: var(--accent-light); margin-bottom: 3px; }
+    .data-card-desc { font-size: 13px; color: var(--text-sub); }
+    .download-btn { display: inline-flex; align-items: center; gap: 6px; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 6px; color: var(--accent-light); font-size: 13px; font-weight: 500; padding: 7px 14px; white-space: nowrap; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; text-decoration: none; }
+    .download-btn:hover { background: rgba(192,184,74,0.2); border-color: var(--accent-light); }
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item { display: flex; align-items: flex-start; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+    .mission-num { width: 28px; height: 28px; flex-shrink: 0; background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent-light); }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .voc-sample { background: #111008; border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; margin-top: 8px; font-size: 13px; color: var(--text-sub); line-height: 1.7; font-style: italic; }
+    .voc-arrow { font-size: 12px; color: var(--accent-dim); font-style: normal; font-weight: 600; margin-right: 4px; }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li { font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #111008; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6; }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(192,184,74,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">고객 VOC 응대 데이터 분석</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">📞</div>
+      <div class="phase-title">고객의 목소리를 데이터로 분석하라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡의 금융 서비스 기업 중 한 카드사에서 <span class="highlight">긴급 분석 의뢰</span>가 들어왔습니다. 해당 카드사는 매일 수천 건의 고객 전화 상담을 운영하고 있으며, 그 과정에서 고객들이 남긴 <span class="highlight">VOC(Voice of Customer)</span> 데이터가 대규모로 축적되어 있습니다.</p>
+      <p>고객 VOC란 고객이 서비스를 이용하면서 느낀 불만, 칭찬, 제안, 요청 등의 의견을 텍스트로 기록한 것입니다. 이 데이터 속에는 고객이 겪은 <span class="highlight">진짜 불편함과 진심 어린 감사</span>가 담겨 있으며, 이를 정확히 분류하고 분석하는 것이 더 나은 서비스로 이어지는 핵심 열쇠입니다.</p>
+      <div class="info-box">
+        📁 <strong>이번 미션에서 활용할 데이터</strong><br><br>
+        · <span class="highlight">VOC_data.xlsx</span> — 모 카드사 고객 전화 상담 VOC 데이터<br>
+        · 분류, 고객 VOC 텍스트, 대응우선순위 등 핵심 컬럼 포함
+      </div>
+      <p>이번 퀘스트의 목표는 단순한 텍스트 분류를 넘어, <span class="highlight">고객의 감정과 의도를 AI로 자동 분류</span>하고, 핵심 키워드와 주제를 도출하여 카드사가 고객 대응 전략을 개선할 수 있도록 실질적인 인사이트를 제공하는 것입니다.</p>
+      <p>소환사님의 분석이 협곡 고객들의 목소리를 제대로 반영하는 서비스를 만드는 데 기여할 것입니다. 지금 바로 데이터를 열고, 고객 VOC 분석을 시작하세요!</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">🗣️</div>
+      <div class="phase-title">5가지 분석 임무</div>
+      <div class="phase-badge">분석 미션</div>
+    </div>
+    <div class="phase-body">
+      <div class="info-box">
+        📂 해당 데이터는 <strong>모 카드사에서 고객들이 전화 상담을 진행하고 나온 고객 VOC 데이터</strong>이다.
+      </div>
+
+      <div class="data-card">
+        <div class="data-card-info">
+          <div class="data-card-title">📂 VOC_data.xlsx</div>
+          <div class="data-card-desc">모 카드사 고객 전화 상담 VOC 데이터</div>
+        </div>
+        <a href="https://hanarostation.github.io/hol/files/VOC_data.xlsx" class="download-btn" download>⬇ 다운로드</a>
+      </div>
+
+      <ul class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text"><strong>'분류'에서 '불만'과 '칭찬' VOC에 대해</strong>, 고객 VOC를 입력했을 때, 해당 VOC가 <strong>'불만'에 해당하는 것인지 '칭찬'에 해당하는 것인지 분류하는 모델</strong>을 <strong>RNN 계열의 모델</strong>을 선택해 생성하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text">생성한 모델에 아래의 VOC를 입력했을 때, 해당 VOC가 <strong>어디로 분류 되는지</strong> 확인하시오.
+            <div class="voc-sample">
+              <span class="voc-arrow">→ VOC :</span> 대출 상환을 앱에서 쉽게 할 수 있도록 보완 해주세요 상환이 너무 어려워 앱 쓰다가 정말 짜증나요
+            </div>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text"><strong>'분류'에서 DS카드에 해당하는 VOC</strong>들만 뽑아, 명사만 추출하여 <strong>'무이자할부'라는 단어가 등장할 때, 가장 유사도가 높은 단어들</strong>을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text">고객 <strong>'대응우선순위' 10위권 내 VOC</strong>들에 대해, 명사만 추출하여 <strong>'토픽 모델링'을 실시, 주제 문장 3문장</strong>을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text"><strong>'대응우선순위'가 10위권 내 VOC와 아닌 VOC</strong>에 대해 고객 <strong>'불만/칭찬' 여부의 유의미한 차이가 있는지 가설검정</strong>을 실시하시오.</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">이 퀘스트는 단순한 텍스트 분류를 넘어,<br>고객의 진심 어린 목소리를 데이터로 해석하고<br>더 나은 서비스 전략을 만들어가는<br>고객 경험 분석 프로젝트입니다.<br>고객의 불만과 칭찬을 정확히 읽어내고,<br>협곡의 금융 서비스를 한 단계 발전시켜 주세요.<br>"고객 VOC 응대 데이터 분석" 퀘스트, 지금 시작됩니다!</div>
+      </div>
+      <p>소환사님이 이 임무를 성공적으로 수행한다면, 카드사는 <span class="highlight">고객의 목소리에 더 빠르고 정확하게 반응</span>할 수 있게 되며, 협곡 주민들이 더 만족스러운 금융 서비스를 누릴 수 있는 환경이 만들어질 것입니다.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 <strong>HTML 형식으로 저장</strong>하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 3, labels = ['퀘스트 배경', '5가지 분석 임무', '제출 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>
