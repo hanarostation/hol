@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>기업 신용 평가 모형 구성하기 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e; --panel: #252310; --card: #2e2c14; --border: #4a4620;
+      --accent: #8a8230; --accent-dim: #605c20; --accent-light: #c0b84a;
+      --text-main: #f0eccc; --text-sub: #a09c60; --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #111008; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #1e1c08, #1c1a0e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    .section-label { font-size: 12px; font-weight: 600; color: var(--accent-light); text-transform: uppercase; letter-spacing: 1px; margin: 16px 0 8px; padding-left: 2px; }
+    .mission-list { list-style: none; padding: 0; margin: 4px 0; }
+    .mission-item { display: flex; align-items: flex-start; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 11px 14px; margin-bottom: 7px; }
+    .mission-num { width: 26px; height: 26px; flex-shrink: 0; background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent-light); }
+    .mission-text { font-size: 13.5px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .sub-list { list-style: none; padding: 0; margin-top: 5px; }
+    .sub-list li { font-size: 12px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #111008; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6; }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(192,184,74,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">기업 신용 평가 모형 구성하기</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🏦</div>
+      <div class="phase-title">협곡의 기업 신용을 평가하라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡의 금융 기관들은 매년 수많은 기업들에게 기술 기반의 신용 대출을 집행해 왔습니다. 이번 퀘스트에서 활용할 데이터는 <span class="highlight">2011년부터 2013년까지</span> 국내 기업들이 신청한 신용 대출과 관련된 실제 기록으로, 기업의 기술력, 자본 규모, 업력, 대출 금액, 그리고 최종 승인 여부까지 다양한 정보를 담고 있습니다.</p>
+      <p>협곡의 은행들은 단순히 기업의 재무 상태만을 보는 것이 아니라, 그 기업이 보유한 <span class="highlight">기술의 가치와 신뢰성</span>을 함께 평가합니다. 어떤 기술이 대출 승인과 연결되는지, 어떤 계열사들이 협곡의 금융 시장을 주도하는지, 그리고 어떤 요인들이 대출 거부의 핵심 원인이 되는지를 파악하는 것이 이번 퀘스트의 핵심입니다.</p>
+      <div class="info-box">
+        📁 <strong>데이터 기본 정보</strong><br><br>
+        · <span class="highlight">34_Tech_Credit_Data</span> — 2011~2013년 국내 기업 기술 신용 대출 데이터<br>
+        · 업력 단위 : <span class="highlight">연도</span><br>
+        · 자본금 / 대출금액 단위 : <span class="highlight">백만원</span><br>
+        · 진행상태 : <span class="highlight">여신 승인 = 대출 승인 / 여신 거부 = 대출 거부</span>
+      </div>
+      <p>소환사님은 이 방대한 데이터를 분석하여, 대출 승인 패턴을 파악하고, 기술명 속 숨겨진 인사이트를 도출하며, 나아가 <span class="highlight">대출 승인 여부를 예측하는 머신러닝 모델</span>까지 구축해야 합니다. 협곡의 금융 질서를 바로잡을 소환사님의 활약을 기대합니다!</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📊</div>
+      <div class="phase-title">20가지 분석 임무</div>
+      <div class="phase-badge">분석 미션</div>
+    </div>
+    <div class="phase-body">
+      <div class="info-box">
+        📂 <strong>34_Tech_Credit_Data</strong> 데이터를 불러와 아래의 미션을 수행하시오.
+      </div>
+
+      <div class="section-label">📌 기본 분석 (1~8)</div>
+      <ul class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text"><strong>대출 승인이 된 기업 중, 자본금이 가장 많은 100개 기업</strong>에 대하여 추출하고, 해당 기업의 <strong>기술명 중 가장 빈도수가 높은 단어</strong>를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text">기업의 <strong>설립일을 이용해 기업의 업력(설립 후 현재까지 지속된 기간 / 연도)</strong>을 계산하고, <strong>대출 승인여부에 따른 기업 업력의 대표값의 차이</strong>가 있는지 검정하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text"><strong>기업 평가등급과 대출 승인여부의 유의미한 차이</strong>가 있는지 가설 검정을 수행하고, <strong>대출 승인 비율을 각 평가 등급 별로</strong> 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text"><strong>여신승인 된 기업 중, 자본금과 대출금액의 합이 가장 높은 10개 기업</strong>을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text">기술 분류에 <strong>'기계'에 해당하는 기업의 기술명</strong>을 단어표현을 통해, <strong>'반도체'라는 단어와 가장 유사한 단어</strong>들이 무엇이 있는지 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">6</div>
+          <div class="mission-text"><strong>대출금액을 가장 많이 집행한 은행</strong>을 확인하고, 해당 은행이 <strong>어떤 기술분류에 대출금액을 가장 많이 집행</strong>했는지 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">7</div>
+          <div class="mission-text"><strong>'기술보증기금' 평가 기관</strong>에서 집행한 <strong>대출금액의 합을 일별로 계산</strong>해, <strong>기술 분류에 따라 나누어 시각화</strong> 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">8</div>
+          <div class="mission-text"><strong>'바이오 의료' 관련 기술</strong>을 가진 기업의 <strong>기술명에 대한 워드클라우드를 시각화</strong> 하시오.</div>
+        </li>
+      </ul>
+
+      <div class="section-label">🤖 모델 구성 (9~10)</div>
+      <ul class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">9</div>
+          <div class="mission-text"><strong>기술명, 대출금액, 기술분류, 신청은행, 자본금</strong>을 입력했을 때, <strong>대출 승인 여부를 판별하는 모델</strong>을 <strong>Scikit Learn</strong> 라이브러리를 활용해 구성하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">10</div>
+          <div class="mission-text"><strong>기술명을 입력했을 때, 대출 승인 여부를 판별하는 모델</strong>을 구성하고자 한다. <strong>RNN 계열의 알고리즘</strong>을 이용해 모델을 구성하고, <strong>model_loan.h5</strong> 이름으로 저장하시오.</div>
+        </li>
+      </ul>
+
+      <div class="section-label">🏢 계열사 분석 (11~16)</div>
+      <ul class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">11</div>
+          <div class="mission-text"><strong>'데이터냥', '미래탐험', '매너상훈', '비모수'</strong>에 해당하는 계열사들을 확인하고, <strong>네 가지 계열사에 대한 기술분류의 빈도수</strong>를 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">12</div>
+          <div class="mission-text">4개의 계열사 중 <strong>자본금이 가장 큰 기업</strong>을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">13</div>
+          <div class="mission-text">4개의 계열사 중 <strong>대출금이 가장 큰 기업</strong>을 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">14</div>
+          <div class="mission-text">4개의 계열사의 <strong>대출 승인 여부의 비율</strong>을 계산하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">15</div>
+          <div class="mission-text">각 계열사가 가진 핵심 기술을 파악하고자 한다. <strong>각 계열사 별로 기술명에 가장 많이 등장하는 명사</strong>를 추출해 확인하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">16</div>
+          <div class="mission-text"><strong>Big5 계열사와 매너상훈 계열사의 자본금의 평균</strong>을 비교하시오.</div>
+        </li>
+      </ul>
+
+      <div class="section-label">📝 토픽 모델링 & 통계 검정 (17~20)</div>
+      <ul class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">17</div>
+          <div class="mission-text"><strong>'정보통신'계열 업체 기술명</strong>을 가져와, <strong>토픽모델링을 수행해 4개의 주제를 도출</strong>하고, 각 주제에서 가장 비중이 높은 단어를 확인하시오.
+            <ul class="sub-list"><li>추가 불용어 : '개발', '시스템', '서비스', '기술', '용', '기반', '솔루션'</li></ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">18</div>
+          <div class="mission-text">기술명에 <strong>'자동차' 단어가 포함된 관련 기술</strong>들만 뽑아, <strong>토픽 모델링을 수행해 3개의 주제를 도출</strong>하시오.
+            <ul class="sub-list"><li>추가 불용어 : '자동차', '부품', '기술', '용'</li></ul>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">19</div>
+          <div class="mission-text">설립일이 <strong>2000년도 이후와 이전의 기업들을 각각 뽑아</strong>, <strong>대출금액의 평균의 차이가 있는지 검정</strong> 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">20</div>
+          <div class="mission-text">설립한지 <strong>15년 이상 기업과 미만인 기업들을 각각 뽑아</strong>, <strong>대출금액의 평균의 차이가 있는지 검정</strong> 하시오.</div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">이 퀘스트는 단순한 수치 분석을 넘어,<br>협곡의 기업 신용 체계를 데이터로 설계하는<br>전략적 금융 분석 프로젝트입니다.<br>기술과 자본, 그리고 신뢰의 언어를 분석하고,<br>협곡의 금융 시스템을 더 공정하게 만들어 주세요.<br>"기업 신용 평가 모형 구성하기" 퀘스트, 지금 시작됩니다!</div>
+      </div>
+      <p>소환사님이 이 임무를 성공적으로 수행한다면, 협곡의 금융 기관들은 <span class="highlight">더 정확하고 공정한 기준으로 기업을 평가</span>할 수 있게 되며, 혁신적인 기술을 가진 기업들이 제대로 된 지원을 받을 수 있는 환경이 만들어질 것입니다.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 <strong>HTML 형식으로 저장</strong>하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 3, labels = ['퀘스트 배경', '20가지 분석 임무', '제출 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>

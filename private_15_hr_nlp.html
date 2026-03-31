@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>기업 평가 데이터 자연어 처리 — Hanaro of Legends</title>
+  <style>
+    :root {
+      --bg: #1c1a0e; --panel: #252310; --card: #2e2c14; --border: #4a4620;
+      --accent: #8a8230; --accent-dim: #605c20; --accent-light: #c0b84a;
+      --text-main: #f0eccc; --text-sub: #a09c60; --text-muted: #5a5630;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #111008; font-family: 'Segoe UI', sans-serif; padding: 16px; }
+    .wrap { max-width: 760px; margin: 0 auto; background: var(--bg); color: var(--text-main); padding: 24px 24px 20px; border: 1.5px solid var(--border); border-radius: 12px; }
+    .header { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+    .logo-img { width: 90px; height: 90px; object-fit: contain; margin-bottom: 10px; }
+    .rune { font-size: 22px; letter-spacing: 8px; color: var(--accent-light); margin-bottom: 4px; }
+    .title { font-size: 22px; font-weight: 500; color: var(--accent-light); letter-spacing: 1px; margin-bottom: 3px; }
+    .sub { font-size: 14px; color: var(--text-sub); }
+    .steps { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+    .step-dot { width: 34px; height: 34px; border: 1.5px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all .2s; flex-shrink: 0; }
+    .step-dot.active { border-color: var(--accent-light); color: var(--accent-light); background: rgba(192,184,74,0.1); box-shadow: 0 0 8px rgba(192,184,74,0.2); }
+    .step-dot.done { border-color: #4a6a2a; color: #7aaa5a; background: rgba(100,160,60,0.08); }
+    .step-line { width: 44px; height: 1px; background: var(--border); flex-shrink: 0; transition: background .3s; }
+    .step-line.done { background: #4a6a2a; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .phase-header { display: flex; align-items: center; gap: 10px; background: linear-gradient(90deg, rgba(192,184,74,0.08) 0%, var(--panel) 100%); border: 1px solid var(--border); border-left: 3px solid var(--accent-light); border-radius: 8px 8px 0 0; padding: 13px 16px; }
+    .phase-icon { font-size: 20px; flex-shrink: 0; }
+    .phase-title { font-size: 17px; font-weight: 500; color: var(--accent-light); flex: 1; }
+    .phase-badge { font-size: 12px; color: #d0c870; background: rgba(192,184,74,0.1); border: 1px solid var(--accent-dim); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+    .phase-body { background: var(--panel); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 20px; font-size: 15px; line-height: 1.85; color: var(--text-main); }
+    .phase-body p { margin-bottom: 14px; }
+    .phase-body p:last-child { margin-bottom: 0; }
+    .highlight { color: var(--accent-light); font-weight: 500; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; opacity: 0.5; }
+    .info-box { background: #111008; border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 16px; margin: 14px 0; font-size: 14px; color: var(--text-sub); line-height: 1.8; }
+    .mission-announce { background: linear-gradient(135deg, #1e1c08, #1c1a0e); border: 1px solid var(--accent); border-radius: 8px; padding: 16px; margin: 14px 0; text-align: center; }
+    .mission-announce-title { font-size: 13px; color: var(--accent-light); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .mission-announce-text { font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.7; }
+    /* 데이터 테이블 */
+    .dict-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; overflow-x: auto; display: block; }
+    .dict-table th { background: rgba(192,184,74,0.12); color: var(--accent-light); font-weight: 500; padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .dict-table td { padding: 7px 10px; color: var(--text-sub); border-bottom: 1px solid rgba(74,70,32,0.4); vertical-align: top; font-size: 12px; }
+    .dict-table tr:last-child td { border-bottom: none; }
+    .dict-table tr:hover td { background: rgba(192,184,74,0.04); }
+    .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin: 12px 0; overflow-x: auto; }
+    .table-note { font-size: 12px; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+    .mission-list { list-style: none; padding: 0; margin: 10px 0; }
+    .mission-item { display: flex; align-items: flex-start; gap: 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 8px; }
+    .mission-num { width: 28px; height: 28px; flex-shrink: 0; background: rgba(192,184,74,0.12); border: 1px solid var(--accent-dim); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--accent-light); }
+    .mission-text { font-size: 14px; color: var(--text-main); line-height: 1.7; flex: 1; }
+    .mission-text strong { color: var(--accent-light); }
+    .sub-list { list-style: none; padding: 0; margin-top: 6px; }
+    .sub-list li { font-size: 13px; color: var(--text-sub); padding: 2px 0 2px 12px; position: relative; }
+    .sub-list li::before { content: '·'; position: absolute; left: 0; color: var(--accent-dim); }
+    .reward-card { display: flex; align-items: flex-start; gap: 12px; background: #111008; border: 1px solid var(--border); border-radius: 8px; padding: 13px 15px; margin: 8px 0; }
+    .reward-icon { font-size: 22px; flex-shrink: 0; }
+    .reward-info { flex: 1; }
+    .reward-label { font-size: 12px; color: var(--accent-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; font-weight: 500; }
+    .reward-value { font-size: 15px; color: var(--text-main); font-weight: 500; }
+    .condition-list { list-style: none; padding: 0; margin: 4px 0; }
+    .condition-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--text-sub); margin-bottom: 6px; line-height: 1.6; }
+    .condition-list li::before { content: '▶'; color: var(--accent); font-size: 10px; flex-shrink: 0; margin-top: 4px; }
+    .condition-list li:last-child { margin-bottom: 0; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+    .nav-btn { background: rgba(192,184,74,0.06); border: 1px solid var(--border); border-radius: 6px; color: var(--text-sub); font-size: 14px; font-weight: 500; padding: 9px 22px; cursor: pointer; transition: all .2s; font-family: 'Segoe UI', sans-serif; }
+    .nav-btn:hover:not(:disabled) { background: rgba(192,184,74,0.12); border-color: var(--accent-light); color: var(--accent-light); }
+    .nav-btn:disabled { opacity: 0.25; cursor: default; }
+    .nav-btn.next { background: rgba(192,184,74,0.1); border-color: var(--accent); color: var(--accent-light); }
+    .nav-btn.next:hover:not(:disabled) { background: rgba(192,184,74,0.2); }
+    .page-label { font-size: 13px; color: var(--text-muted); }
+    .footer { text-align: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: 16px; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <img src="images/logo.png" alt="Hanaro of Legends Logo" class="logo-img">
+    <div class="rune">— ◆ —</div>
+    <div class="title">기업 평가 데이터 자연어 처리</div>
+    <div class="sub">Hanaro of Legends · 프라이빗 미션</div>
+  </div>
+
+  <div class="steps" id="steps"></div>
+
+  <!-- Page 1 -->
+  <div class="page active" id="page-0">
+    <div class="phase-header">
+      <div class="phase-icon">🏢</div>
+      <div class="phase-title">협곡의 기업 문화를 혁신하라!</div>
+      <div class="phase-badge">Private Mission</div>
+    </div>
+    <div class="phase-body">
+      <p>하나로 협곡에는 수많은 기업들이 자리 잡고 있으며, 각 기업의 임원과 구성원들은 매일 크고 작은 의사결정을 내리며 조직을 이끌어가고 있습니다. 그러나 협곡의 기업 문화가 정말 건강하게 성장하고 있는지, 조직 내에서 어떤 행동들이 실제로 강화되어야 하는지는 눈에 보이지 않는 경우가 많습니다.</p>
+      <p>이에 협곡의 인재개발원은 대규모 <span class="highlight">임원 평가 데이터</span>를 수집하였습니다. 이 데이터에는 각 임직원이 동료나 상사에게 직접 작성한 텍스트 형태의 평가 의견이 담겨 있으며, 그 안에는 협곡의 조직 문화가 어떤 방향으로 흘러가고 있는지에 대한 소중한 단서들이 숨겨져 있습니다.</p>
+      <div class="info-box">
+        📁 <strong>이번 미션에서 활용할 데이터</strong><br><br>
+        · <span class="highlight">33_HR_Data.xlsx</span> — 임직원 평가 텍스트 데이터 (Row 7,725 / Column 6)<br>
+        · <span class="highlight">stopword.txt</span> — 자연어 처리용 불용어 사전
+      </div>
+      <p>이번 퀘스트의 목표는 이 방대한 텍스트 데이터에 <span class="highlight">자연어 처리(NLP)</span> 기법을 적용하여, 협곡 내 기업들이 어떤 행동과 역량을 중요시하는지 파악하고, 궁극적으로 <span class="highlight">더 나은 기업 문화를 만들어 나가는 데 기여</span>하는 것입니다.</p>
+      <p>소환사님은 데이터 속 언어를 분석하고, 숨겨진 패턴과 인사이트를 도출하여 협곡 전체가 더 건강하고 성장 지향적인 문화를 갖출 수 있도록 이바지해야 합니다. 지금 바로 데이터를 열고, 협곡의 기업 문화를 바꿀 분석을 시작하세요!</p>
+    </div>
+  </div>
+
+  <!-- Page 2 -->
+  <div class="page" id="page-1">
+    <div class="phase-header">
+      <div class="phase-icon">📊</div>
+      <div class="phase-title">4가지 분석 임무</div>
+      <div class="phase-badge">분석 미션</div>
+    </div>
+    <div class="phase-body">
+      <ol class="mission-list">
+        <li class="mission-item">
+          <div class="mission-num">1</div>
+          <div class="mission-text">
+            <strong>'33_HR_Data.xlsx'</strong> 데이터를 아래와 같이 바꾸어 처리하시오.
+            <ul class="sub-list"><li>Row 7725 / Column 6</li></ul>
+            <div class="table-wrap">
+              <table class="dict-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>사원 ID</th>
+                    <th>관계</th>
+                    <th>직종</th>
+                    <th>임원추전여부</th>
+                    <th>항목</th>
+                    <th>TEXT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>0</td><td>0</td><td>타인</td><td>경영/기획/컨설팅</td><td>추전</td><td>지속강화해야 할행동</td><td>-Very Supportive\n-Highly encouraging...</td></tr>
+                  <tr><td>1</td><td>1</td><td>타인</td><td>경영/기획/컨설팅</td><td>추전</td><td>지속강화해야 할행동</td><td>Socializing and Networking with all employees ...</td></tr>
+                  <tr><td>2</td><td>2</td><td>타인</td><td>인사/총무</td><td>비추전</td><td>지속강화해야 할행동</td><td>no comment</td></tr>
+                  <tr><td>3</td><td>3</td><td>타인</td><td>전문직</td><td>추전</td><td>지속강화해야 할행동</td><td>Employee motivation can be reinforced. \nEmplo...</td></tr>
+                  <tr><td>4</td><td>4</td><td>타인</td><td>경영/기획/컨설팅</td><td>추전</td><td>지속강화해야 할행동</td><td>counter-intelligence및 본사와의 협업 강화,\n매해 전략및 본연의...</td></tr>
+                  <tr><td>5</td><td>5</td><td>타인</td><td>IT/인터넷</td><td>비추전</td><td>지속강화해야 할행동</td><td>Very good experience and knowledge of branch...</td></tr>
+                  <tr><td>6</td><td>6</td><td>타인</td><td>유통/무역</td><td>추전</td><td>지속강화해야 할행동</td><td>He is very good at customer-oriented thinking ...</td></tr>
+                  <tr><td>7</td><td>7</td><td>타인</td><td>인사/총무</td><td>추전</td><td>지속강화해야 할행동</td><td>Holding the 전술전략기획부 whole member meeting regul...</td></tr>
+                  <tr><td>8</td><td>8</td><td>타인</td><td>경영/기획/컨설팅</td><td>추전</td><td>지속강화해야 할행동</td><td>leaders should establish a steady flow of comm...</td></tr>
+                  <tr><td>9</td><td>9</td><td>타인</td><td>금융/재무</td><td>비추전</td><td>지속강화해야 할행동</td><td>Maybe to show more presence at the location...</td></tr>
+                </tbody>
+              </table>
+              <div class="table-note">※ 위 표는 데이터 구조 예시입니다 (상위 10행)</div>
+            </div>
+          </div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">2</div>
+          <div class="mission-text"><strong>'지속 강화 해야 할 행동'</strong>에서, 빈도수가 가장 높은 <strong>상위 20개의 명사를 추출</strong>하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">3</div>
+          <div class="mission-text"><strong>stopword.txt</strong> 파일을 불러와 해당 파일 내 단어들을 불용어로 처리해, <strong>중간 관리자</strong>가 <strong>'현재 하고 있지 않지만 해야 할 행동'</strong>에 대한 명사 단어들에 대해 <strong>워드클라우드를 생성</strong>하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">4</div>
+          <div class="mission-text"><strong>'직종'</strong>에서 <strong>'정책/전술'</strong> 부서에 있는 인원들이 가장 많이 사용하는 TEXT 단어 표현을 <strong>10가지</strong> 뽑아 해당 빈도수에 대한 <strong>막대그래프를 시각화</strong> 하시오.</div>
+        </li>
+        <li class="mission-item">
+          <div class="mission-num">5</div>
+          <div class="mission-text"><strong>'팀'</strong>과 <strong>'협업'</strong>이라는 단어가 각 임직원이 쓴 <strong>'TEXT'</strong>에 얼마나 등장하는지 계산하고, <strong>어떤 직종에서 해당 단어를 가장 많이 사용</strong>했는지 확인하시오.</div>
+        </li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Page 3 -->
+  <div class="page" id="page-2">
+    <div class="phase-header">
+      <div class="phase-icon">🏆</div>
+      <div class="phase-title">미션 제출 & 보상</div>
+      <div class="phase-badge">최종 정리</div>
+    </div>
+    <div class="phase-body">
+      <div class="mission-announce">
+        <div class="mission-announce-title">✨ 소환사님께 전하는 말</div>
+        <div class="mission-announce-text">이 퀘스트는 단순한 텍스트 분석을 넘어,<br>협곡 내 기업 문화의 방향성을 데이터로 밝혀내는<br>전략적 인사이트 프로젝트입니다.<br>언어 속에 숨겨진 패턴을 찾아내고,<br>협곡의 기업 문화를 더 건강하게 만들어 주세요.<br>"기업 평가 데이터 자연어 처리" 퀘스트, 지금 시작됩니다!</div>
+      </div>
+      <p>소환사님이 이 임무를 성공적으로 수행한다면, 하나로 협곡의 모든 기업들은 <span class="highlight">더 명확한 방향성과 건강한 조직 문화</span>를 갖추게 될 것이며, 협곡 전체의 성장을 이끌어가게 될 것입니다.</p>
+      <hr class="divider">
+      <div class="reward-card">
+        <div class="reward-icon">⚡</div>
+        <div class="reward-info">
+          <div class="reward-label">미션 달성 조건</div>
+          <ul class="condition-list">
+            <li>주어진 <strong>개별 미션</strong> 풀이</li>
+            <li>풀어낸 ipynb 파일을 <strong>HTML 형식으로 저장</strong>하여 송부</li>
+            <li>Jupyter Notebook → [File] → [Download as] → [HTML (.html)]</li>
+            <li>제출 양식 : <strong>[디지털하나로_n기] 홍길동 _ 미션이름</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="reward-card">
+        <div class="reward-icon">💰</div>
+        <div class="reward-info">
+          <div class="reward-label">보상 포인트</div>
+          <div class="reward-value">700 포인트</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn" id="btn-prev" onclick="move(-1)" disabled>◀ 이전</button>
+    <span class="page-label" id="page-label">1 / 3</span>
+    <button class="nav-btn next" id="btn-next" onclick="move(1)">다음 ▶</button>
+  </div>
+  <div class="footer">✦ &nbsp; 소환사님의 엄청난 역량과 영향력을 기대합니다! &nbsp; ✦</div>
+</div>
+
+<script>
+  const total = 3, labels = ['퀘스트 배경', '5가지 분석 임무', '제출 & 보상'];
+  let current = 0;
+  const stepsEl = document.getElementById('steps');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'step-dot' + (i === 0 ? ' active' : '');
+    dot.textContent = i + 1; dot.title = labels[i]; dot.onclick = () => goTo(i);
+    stepsEl.appendChild(dot);
+    if (i < total - 1) { const line = document.createElement('div'); line.className = 'step-line'; stepsEl.appendChild(line); }
+  }
+  function goTo(idx) {
+    document.getElementById('page-' + current).classList.remove('active');
+    current = idx;
+    document.getElementById('page-' + current).classList.add('active');
+    document.querySelectorAll('.step-dot').forEach((d, i) => { d.classList.remove('active','done'); if (i < current) d.classList.add('done'); else if (i === current) d.classList.add('active'); });
+    document.querySelectorAll('.step-line').forEach((l, i) => { l.classList.toggle('done', i < current); });
+    document.getElementById('btn-prev').disabled = current === 0;
+    const nb = document.getElementById('btn-next');
+    nb.disabled = current === total - 1;
+    nb.textContent = current === total - 1 ? '미션 클리어! 🏆' : '다음 ▶';
+    document.getElementById('page-label').textContent = (current + 1) + ' / ' + total;
+  }
+  function move(dir) { const n = current + dir; if (n >= 0 && n < total) goTo(n); }
+</script>
+</body>
+</html>
