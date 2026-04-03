@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>최종 프로젝트 카운트다운</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f2e1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .logo-wrap {
+      margin-bottom: 2rem;
+    }
+
+    .logo-wrap img {
+      max-height: 80px;
+      max-width: 240px;
+      object-fit: contain;
+    }
+
+    .title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #a8d5b0;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #5a8f65;
+      margin-bottom: 2.5rem;
+      text-align: center;
+    }
+
+    .countdown {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .num-box {
+      background: #163d22;
+      border: 2px solid #2e6b3a;
+      border-radius: 16px;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #7fd48f;
+      position: relative;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+
+
+    .label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #4a7d55;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sep {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #2e6b3a;
+      margin-bottom: 24px;
+      line-height: 1;
+    }
+
+    .done-msg {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #7fd48f;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      .num-box { width: 72px; height: 72px; font-size: 2rem; border-radius: 12px; }
+      .countdown { gap: 0.7rem; }
+      .sep { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo-wrap">
+    <img src="images/logo.png" alt="로고" onerror="this.style.display='none'" />
+  </div>
+
+  <div class="title">최종 프로젝트 발표까지</div>
+  <div class="subtitle">2026년 4월 21일 (화) 오후 2시</div>
+
+  <div class="countdown" id="countdown">
+    <div class="unit">
+      <div class="num-box" id="days">00</div>
+      <div class="label">일</div>
+    </div>
+    <div class="sep">:</div>
+    <div class="unit">
+      <div class="num-box" id="hours">00</div>
+      <div class="label">시</div>
+    </div>
+    <div class="sep">:</div>
+    <div class="unit">
+      <div class="num-box" id="minutes">00</div>
+      <div class="label">분</div>
+    </div>
+    <div class="sep">:</div>
+    <div class="unit">
+      <div class="num-box" id="seconds">00</div>
+      <div class="label">초</div>
+    </div>
+  </div>
+
+  <script>
+    const target = new Date('2026-04-21T14:00:00');
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function update() {
+      const now = new Date();
+      const diff = target - now;
+
+      if (diff <= 0) {
+        document.getElementById('countdown').innerHTML = '<div class="done-msg">🎉 발표 시작!</div>';
+        return;
+      }
+
+      const days    = Math.floor(diff / 86400000);
+      const hours   = Math.floor((diff % 86400000) / 3600000);
+      const minutes = Math.floor((diff % 3600000)  / 60000);
+      const seconds = Math.floor((diff % 60000)    / 1000);
+
+      document.getElementById('days').textContent    = pad(days);
+      document.getElementById('hours').textContent   = pad(hours);
+      document.getElementById('minutes').textContent = pad(minutes);
+      document.getElementById('seconds').textContent = pad(seconds);
+    }
+
+    update();
+    setInterval(update, 1000);
+  </script>
+</body>
+</html>
