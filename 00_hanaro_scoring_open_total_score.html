@@ -191,6 +191,16 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .gen-btn.all{border-color:var(--blue-dark);color:var(--blue);}
 .gen-btn.all.active{border-color:var(--blue);background:rgba(10,200,185,.1);color:var(--blue);box-shadow:0 0 16px rgba(10,200,185,.25);}
 @media(max-width:600px){.gen-btn{font-size:11px;padding:6px 12px;letter-spacing:1px;}}
+
+/* QUICK NAV */
+.quick-nav{position:fixed;bottom:32px;left:32px;z-index:200;display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+.qnav-toggle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0E1E3D,#0A1428);border:2px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(0,0,0,.5);font-size:20px;}
+.qnav-toggle:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(200,155,60,.4);}
+.qnav-menu{display:flex;flex-direction:column;gap:5px;overflow:hidden;max-height:0;opacity:0;transition:max-height .35s ease,opacity .25s ease;pointer-events:none;}
+.qnav-menu.open{max-height:400px;opacity:1;pointer-events:all;}
+.qnav-btn{font-family:'Black Han Sans',sans-serif;font-size:12px;letter-spacing:1.5px;padding:7px 14px;border-radius:8px;border:1px solid var(--card-border);background:rgba(14,30,61,.92);backdrop-filter:blur(8px);color:var(--text-sub);cursor:pointer;transition:all .2s;white-space:nowrap;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,.4);}
+.qnav-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(200,155,60,.1);}
+@media(max-width:600px){.quick-nav{bottom:20px;left:16px;}.qnav-btn{font-size:11px;padding:6px 11px;}}
 </style>
 </head>
 <body>
@@ -237,20 +247,20 @@ body::before{content:'';position:fixed;inset:0;background-image:
       <div class="stat-card"><div class="stat-number" id="statTotal">—</div><div class="stat-label">총 누적 점수</div></div>
     </div>
 
-    <div class="section-title">⚔️ 소환사 랭킹</div>
+    <div id="sec-ranking" class="section-title">⚔️ 소환사 랭킹</div>
+    <div class="season-tabs" id="rankSeasonTabs"></div>
     <div class="leaderboard" id="leaderboard"></div>
 
-    <div class="section-title">🏆 시즌 티어</div>
-    <div class="season-tabs" id="seasonTabs"></div>
+    <div id="sec-tier" class="section-title">🏆 시즌 티어</div>
     <div class="tier-grid" id="tierGrid"></div>
 
-    <div class="section-title">📊 미션 통계</div>
+    <div id="sec-mstats" class="section-title">📊 미션 통계</div>
     <div class="mstats-grid" id="mstatsGrid"></div>
 
-    <div class="section-title">🛡️ 팀 통계</div>
+    <div id="sec-team" class="section-title">🛡️ 팀 통계</div>
     <div class="mstats-grid" id="teamStatsGrid"></div>
 
-    <div class="section-title">📋 가장 최근 수행 미션</div>
+    <div id="sec-mission" class="section-title">📋 가장 최근 수행 미션</div>
     <div class="mission-grid" id="missionGrid"></div>
 
     <div class="footer">
@@ -259,6 +269,19 @@ body::before{content:'';position:fixed;inset:0;background-image:
     </div>
 
   </div>
+</div>
+
+
+<!-- QUICK NAV -->
+<div class="quick-nav" id="quickNav">
+  <div class="qnav-menu" id="qnavMenu">
+    <button class="qnav-btn" onclick="navScrollTo('sec-ranking')">⚔️ 소환사 랭킹</button>
+    <button class="qnav-btn" onclick="navScrollTo('sec-tier')">🏆 시즌 티어</button>
+    <button class="qnav-btn" onclick="navScrollTo('sec-mstats')">📊 미션 통계</button>
+    <button class="qnav-btn" onclick="navScrollTo('sec-team')">🛡️ 팀 통계</button>
+    <button class="qnav-btn" onclick="navScrollTo('sec-mission')">📋 최근 수행 미션</button>
+  </div>
+  <div class="qnav-toggle" onclick="toggleQNav()" title="빠른 이동">🗺️</div>
 </div>
 
 <!-- FAB: 새로고침 -->
@@ -296,7 +319,7 @@ function selectGen(gen){
   const filtered = gen==='__all__' ? allRows : allRows.filter(r=>String(r[genCol]||'').trim()===gen);
   console.log('[HOL] selectGen:', gen, '| filtered:', filtered.length, '| genCol:', genCol);
   state = buildState(filtered);
-  activeSeason = state.seasons[state.seasons.length-1]||null;
+  activeSeason = null; // 기수 바꾸면 전체 시즌으로 초기화
   render();
 }
 
@@ -688,7 +711,7 @@ function renderMissions(missions,totalPlayers){
 }
 
 // ── main render ──
-let state=null, activeSeason=null;
+let state=null, activeSeason=null; // null = 전체 시즌
 
 function render(){
   if(!state) return;
@@ -703,9 +726,9 @@ function render(){
     dateTime = `최종 업데이트 : ${y}. ${mo}. ${dy}. ${ampm} ${h12}시${mStr}`;
   }
 
-  // 기수 레이블
+  const seasonLabel = activeSeason || '전체';
   const genLabel = activeGen==='__all__' ? '전체랭킹' : (activeGen||'');
-  document.getElementById('headerBadge').textContent = activeSeason ? `HOL · ${genLabel} · ${activeSeason}` : `HOL · ${genLabel}`;
+  document.getElementById('headerBadge').textContent = `HOL · ${genLabel} · ${seasonLabel}`;
   document.getElementById('headerInfo').textContent  = `${dateTime} · 총 ${state.totalPlayers}명의 소환사`;
   document.getElementById('footerGen').textContent   = genLabel;
   document.getElementById('footerDate').textContent  = `· ${dateTime}`;
@@ -715,22 +738,37 @@ function render(){
   document.getElementById('statMissions').textContent= state.totalMissions;
   document.getElementById('statCerts').textContent   = state.totalCerts.toLocaleString();
   document.getElementById('statTotal').textContent   = state.totalScore.toLocaleString();
-  document.getElementById('leaderboard').innerHTML=renderLeaderboard(state.bySeasonData[activeSeason]?.ranking||state.overall.ranking);
+  document.getElementById('leaderboard').innerHTML=renderLeaderboard(getSeasonData().ranking);
 
-  document.getElementById('seasonTabs').innerHTML=state.seasons.map(s=>
+  // ── 시즌 탭 (랭킹 아래) ──
+  const allSeasonBtn = `<div class="season-tab ${activeSeason===null?'active':''}" data-season="__all__">전체</div>`;
+  const seasonBtns = state.seasons.map(s=>
     `<div class="season-tab ${s===activeSeason?'active':''}" data-season="${s}">${s}</div>`).join('');
-  document.querySelectorAll('.season-tab').forEach(t=>t.addEventListener('click',()=>{
-    activeSeason=t.dataset.season;
-    document.querySelectorAll('.season-tab').forEach(x=>x.classList.toggle('active',x===t));
-    // 티어는 항상 기수 전체(overall) 랭킹 기준으로 계산
-    document.getElementById('tierGrid').innerHTML=renderTier(state.overall.ranking);
+  document.getElementById('rankSeasonTabs').innerHTML = seasonBtns + allSeasonBtn;
+  document.querySelectorAll('#rankSeasonTabs .season-tab').forEach(t=>t.addEventListener('click',()=>{
+    activeSeason = t.dataset.season==='__all__' ? null : t.dataset.season;
+    document.querySelectorAll('#rankSeasonTabs .season-tab').forEach(x=>x.classList.toggle('active',x===t));
+    refreshSeasonView();
   }));
-  // 티어는 시즌 탭과 무관하게 기수 전체(overall) 랭킹 기준으로 계산
-  document.getElementById('tierGrid').innerHTML=renderTier(state.overall.ranking);
-  document.getElementById('mstatsGrid').innerHTML=renderMissionStats(state.overall);
-  document.getElementById('teamStatsGrid').innerHTML=renderTeamStats(state.overall);
+
+  // 티어 / 통계 초기 렌더
+  refreshSeasonView();
   document.getElementById('missionGrid').innerHTML=renderMissions(state.overall.missions,state.totalPlayers);
   document.getElementById('dashboard').classList.remove('hidden');
+}
+
+// 선택된 시즌 기준으로 랭킹 + 통계 갱신
+function getSeasonData(){
+  if(!activeSeason) return state.overall;
+  return state.bySeasonData[activeSeason] || state.overall;
+}
+
+function refreshSeasonView(){
+  const sd = getSeasonData();
+  document.getElementById('leaderboard').innerHTML   = renderLeaderboard(sd.ranking);
+  document.getElementById('tierGrid').innerHTML      = renderTier(state.overall.ranking); // 티어는 항상 기수 전체 기준
+  document.getElementById('mstatsGrid').innerHTML    = renderMissionStats(sd);
+  document.getElementById('teamStatsGrid').innerHTML = renderTeamStats(sd);
 }
 
 // ── load ──
@@ -758,7 +796,7 @@ async function loadData(){
     // 선택된 기수 필터링
     const filtered = activeGen==='__all__' ? allRows : allRows.filter(r=>String(r[genCol]||'').trim()===activeGen);
     state = buildState(filtered);
-    activeSeason = state.seasons[state.seasons.length-1]||null;
+    activeSeason = null; // 항상 전체 시즌으로 시작
     render();
     document.getElementById('loadingState').classList.add('hidden');
   } catch(e){
@@ -770,6 +808,18 @@ async function loadData(){
 
 renderGenSelector([]);
 loadData();
+
+// ── Quick Nav ──
+function toggleQNav(){
+  const m = document.getElementById('qnavMenu');
+  m.classList.toggle('open');
+}
+function navScrollTo(id){
+  const el = document.getElementById(id);
+  if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+  document.getElementById('qnavMenu').classList.remove('open');
+}
+
 </script>
 </body>
 </html>
