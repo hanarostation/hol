@@ -180,6 +180,11 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .fab-icon{font-size:22px;line-height:1;}
 .fab-tooltip{position:absolute;right:calc(100% + 12px);top:50%;transform:translateY(-50%) translateX(0);background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-main);font-size:12px;font-family:'Black Han Sans',sans-serif;letter-spacing:1px;padding:6px 12px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:all .2s;}
 
+
+.bar-season{background:rgba(255,215,0,.18);border:1px solid #B8860B;color:#FFD700;}
+.mission-card.season::before{background:#FFD700;}
+.mission-card.season .mission-type{color:#FFD700;}
+
 @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .hidden{display:none!important;}
 
@@ -319,7 +324,12 @@ function selectGen(gen){
   const filtered = gen==='__all__' ? allRows : allRows.filter(r=>String(r[genCol]||'').trim()===gen);
   console.log('[HOL] selectGen:', gen, '| filtered:', filtered.length, '| genCol:', genCol);
   state = buildState(filtered);
-  activeSeason = null; // 기수 바꾸면 전체 시즌으로 초기화
+  // 기수 바꾸면 가장 높은 시즌으로 초기화
+  if(state.seasons && state.seasons.length > 0){
+    activeSeason = state.seasons[state.seasons.length - 1];
+  } else {
+    activeSeason = null;
+  }
   render();
 }
 
@@ -338,11 +348,12 @@ function detectCat(v){
   if(s.includes('커뮤')) return 'comm';
   if(s.includes('프라이')) return 'priv';
   if(s.includes('모델')) return 'model';
+  if(s.includes('시즌') && s.includes('보상')) return 'season';
   return 'etc';
 }
-function catLabel(c){return {team:'팀 액티브 미션',comm:'커뮤니케이션 미션',priv:'프라이빗 미션',model:'모델링 미션',etc:'기타'}[c]||c;}
-function catBarCls(c){return {team:'bar-team',comm:'bar-comm',priv:'bar-private',model:'bar-model'}[c]||'bar-team';}
-function catCardCls(c){return {team:'team',comm:'comm',priv:'priv',model:'model'}[c]||'team';}
+function catLabel(c){return {team:'팀 액티브 미션',comm:'커뮤니케이션 미션',priv:'프라이빗 미션',model:'모델링 미션',season:'시즌 보상',etc:'기타'}[c]||c;}
+function catBarCls(c){return {team:'bar-team',comm:'bar-comm',priv:'bar-private',model:'bar-model',season:'bar-season'}[c]||'bar-team';}
+function catCardCls(c){return {team:'team',comm:'comm',priv:'priv',model:'model',season:'season'}[c]||'team';}
 
 // ── build state ──
 function buildState(rows){
@@ -766,7 +777,7 @@ function getSeasonData(){
 function refreshSeasonView(){
   const sd = getSeasonData();
   document.getElementById('leaderboard').innerHTML   = renderLeaderboard(sd.ranking);
-  document.getElementById('tierGrid').innerHTML      = renderTier(state.overall.ranking); // 티어는 항상 기수 전체 기준
+  document.getElementById('tierGrid').innerHTML      = renderTier(sd.ranking); // 선택된 시즌 기준 티어
   document.getElementById('mstatsGrid').innerHTML    = renderMissionStats(sd);
   document.getElementById('teamStatsGrid').innerHTML = renderTeamStats(sd);
 }
@@ -796,7 +807,12 @@ async function loadData(){
     // 선택된 기수 필터링
     const filtered = activeGen==='__all__' ? allRows : allRows.filter(r=>String(r[genCol]||'').trim()===activeGen);
     state = buildState(filtered);
-    activeSeason = null; // 항상 전체 시즌으로 시작
+    // 가장 높은 시즌(마지막 시즌)을 기본 선택
+    if(state.seasons && state.seasons.length > 0){
+      activeSeason = state.seasons[state.seasons.length - 1];
+    } else {
+      activeSeason = null;
+    }
     render();
     document.getElementById('loadingState').classList.add('hidden');
   } catch(e){
