@@ -181,10 +181,21 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .fab-tooltip{position:absolute;right:calc(100% + 12px);top:50%;transform:translateY(-50%) translateX(0);background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-main);font-size:12px;font-family:'Black Han Sans',sans-serif;letter-spacing:1px;padding:6px 12px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:all .2s;}
 
 
+.tier-gen-block{margin-bottom:32px;}
+.tier-gen-label{font-family:'Black Han Sans',sans-serif;font-size:14px;letter-spacing:3px;color:var(--gold);margin-bottom:14px;padding:6px 14px;background:rgba(200,155,60,.08);border:1px solid rgba(200,155,60,.2);border-radius:6px;display:inline-block;}
+
 .bar-season{background:rgba(255,215,0,.18);border:1px solid #B8860B;color:#FFD700;}
 .mission-card.season::before{background:#FFD700;}
 .mission-card.season .mission-type{color:#FFD700;}
 
+.quick-nav{position:fixed;bottom:32px;left:32px;z-index:200;display:flex;flex-direction:column;gap:6px;align-items:flex-start;}
+.qnav-toggle{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0E1E3D,#0A1428);border:2px solid var(--card-border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s;box-shadow:0 4px 20px rgba(0,0,0,.5);font-size:20px;}
+.qnav-toggle:hover{border-color:var(--gold);box-shadow:0 0 20px rgba(200,155,60,.4);}
+.qnav-menu{display:flex;flex-direction:column;gap:5px;overflow:hidden;max-height:0;opacity:0;transition:max-height .35s ease,opacity .25s ease;pointer-events:none;}
+.qnav-menu.open{max-height:400px;opacity:1;pointer-events:all;}
+.qnav-btn{font-family:'Black Han Sans',sans-serif;font-size:12px;letter-spacing:1.5px;padding:7px 14px;border-radius:8px;border:1px solid var(--card-border);background:rgba(14,30,61,.92);backdrop-filter:blur(8px);color:var(--text-sub);cursor:pointer;transition:all .2s;white-space:nowrap;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,.4);}
+.qnav-btn:hover{border-color:var(--gold);color:var(--gold);background:rgba(200,155,60,.1);}
+@media(max-width:600px){.quick-nav{bottom:20px;left:16px;}.qnav-btn{font-size:11px;padding:6px 11px;}}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .hidden{display:none!important;}
 
@@ -257,7 +268,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
     <div class="leaderboard" id="leaderboard"></div>
 
     <div id="sec-tier" class="section-title">🏆 시즌 티어</div>
-    <div class="tier-grid" id="tierGrid"></div>
+    <div id="tierGrid"></div>
 
     <div id="sec-mstats" class="section-title">📊 미션 통계</div>
     <div class="mstats-grid" id="mstatsGrid"></div>
@@ -274,6 +285,19 @@ body::before{content:'';position:fixed;inset:0;background-image:
     </div>
 
   </div>
+</div>
+
+
+<!-- QUICK NAV -->
+<div class="quick-nav" id="quickNav">
+  <div class="qnav-menu" id="qnavMenu">
+    <button class="qnav-btn" onclick="navScrollTo('sec-ranking')">⚔️ 소환사 랭킹</button>
+    <button class="qnav-btn" onclick="navScrollTo('sec-tier')">🏆 시즌 티어</button>
+    <button class="qnav-btn" onclick="navScrollTo('sec-mstats')">📊 미션 통계</button>
+    <button class="qnav-btn" onclick="navScrollTo('sec-team')">🛡️ 팀 통계</button>
+    <button class="qnav-btn" onclick="navScrollTo('sec-mission')">📋 최근 수행 미션</button>
+  </div>
+  <div class="qnav-toggle" onclick="toggleQNav()" title="빠른 이동">🗺️</div>
 </div>
 
 
@@ -324,7 +348,6 @@ function selectGen(gen){
   const filtered = gen==='__all__' ? allRows : allRows.filter(r=>String(r[genCol]||'').trim()===gen);
   console.log('[HOL] selectGen:', gen, '| filtered:', filtered.length, '| genCol:', genCol);
   state = buildState(filtered);
-  // 기수 바꾸면 가장 높은 시즌으로 초기화
   if(state.seasons && state.seasons.length > 0){
     activeSeason = state.seasons[state.seasons.length - 1];
   } else {
@@ -542,8 +565,8 @@ function renderLeaderboard(ranking){
   }).join('');
 }
 
-function renderTier(ranking){
-  return TIER_DEFS.map(td=>{
+function renderTierGroup(ranking, label){
+  const cards = TIER_DEFS.map(td=>{
     const all=ranking.filter(p=>p.tier===td.key);
     const show=td.key==='foundation'?all.slice(0,4):all;
     const more=td.key==='foundation'&&all.length>4?`<div class="tier-player-item" style="justify-content:center;opacity:.5;font-size:11px">+ ${all.length-4}명 더</div>`:'';
@@ -560,6 +583,54 @@ function renderTier(ranking){
       <div class="tier-player-list">${rows}${more}</div>
     </div>`;
   }).join('');
+  const header = label ? `<div class="tier-gen-label">${label}</div>` : '';
+  return `<div class="tier-gen-block">${header}<div class="tier-grid">${cards}</div></div>`;
+}
+
+function renderTier(ranking){
+  // 전체랭킹(activeGen==='__all__')일 때 기수별로 분리
+  if(activeGen === '__all__' && allRows.length > 0){
+    const gens = [...new Set(allRows.map(r=>String(r[genCol]||'').trim()).filter(Boolean))]
+      .sort((a,b)=>{ const na=parseInt(a),nb=parseInt(b); return isNaN(na)||isNaN(nb)?a.localeCompare(b):na-nb; });
+    if(gens.length > 1){
+      // 현재 activeSeason 기준으로 기수별 rows 필터 → buildSeason → 티어 배정
+      const CSEA = Object.keys(allRows[0]||{}).find(x=>x.includes('시즌'))||'시즌';
+      const CN=Object.keys(allRows[0]||{}).find(x=>x==='이름')||'이름';
+      const CC=Object.keys(allRows[0]||{}).find(x=>x==='콜네임')||'콜네임';
+      const CCAT=Object.keys(allRows[0]||{}).find(x=>x==='분류')||'분류';
+      const CM=Object.keys(allRows[0]||{}).find(x=>x.includes('미션명'))||'미션명';
+      const CS=Object.keys(allRows[0]||{}).find(x=>x.includes('획득점수'))||'획득점수';
+      const CE=Object.keys(allRows[0]||{}).find(x=>x.includes('추가점수'))||'추가점수';
+      return gens.map(g=>{
+        let genRows = allRows.filter(r=>String(r[genCol]||'').trim()===g);
+        // 시즌 필터 적용
+        if(activeSeason) genRows = genRows.filter(r=>String(r[CSEA]||'시즌1')===activeSeason);
+        if(!genRows.length) return '';
+        const sd = buildSeason(genRows, CN, CC, CCAT, CM, CS, CE);
+        return renderTierGroup(sd.ranking, `${g}기`);
+      }).filter(Boolean).join('');
+    }
+  }
+  // 단일 기수면 그냥 렌더
+  return `<div class="tier-gen-block"><div class="tier-grid">${
+    TIER_DEFS.map(td=>{
+      const all=ranking.filter(p=>p.tier===td.key);
+      const show=td.key==='foundation'?all.slice(0,4):all;
+      const more=td.key==='foundation'&&all.length>4?`<div class="tier-player-item" style="justify-content:center;opacity:.5;font-size:11px">+ ${all.length-4}명 더</div>`:'';
+      const rows=show.map(p=>`<div class="tier-player-item"><span>${p.call}</span><span class="tier-player-score">${p.total.toLocaleString()}</span></div>`).join('')
+        ||`<div class="tier-player-item" style="justify-content:center;opacity:.4">해당 없음</div>`;
+      return `<div class="tier-card ${td.cls}">
+        <div class="tier-img-wrap">
+          <img src="${BASE_IMG+td.img}" alt="${td.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <div class="tier-img-fallback" style="display:none">${td.fb}</div>
+        </div>
+        <div class="tier-card-name">${td.name}</div>
+        <div class="tier-card-cond">${td.cond}</div>
+        <div class="tier-card-bonus">${td.bonus}</div>
+        <div class="tier-player-list">${rows}${more}</div>
+      </div>`;
+    }).join('')
+  }</div></div>`;
 }
 
 function renderMissionStats(overall){
@@ -777,7 +848,7 @@ function getSeasonData(){
 function refreshSeasonView(){
   const sd = getSeasonData();
   document.getElementById('leaderboard').innerHTML   = renderLeaderboard(sd.ranking);
-  document.getElementById('tierGrid').innerHTML      = renderTier(sd.ranking); // 선택된 시즌 기준 티어
+  document.getElementById('tierGrid').innerHTML      = renderTier(getSeasonData().ranking); // 선택된 시즌 기준 티어
   document.getElementById('mstatsGrid').innerHTML    = renderMissionStats(sd);
   document.getElementById('teamStatsGrid').innerHTML = renderTeamStats(sd);
 }
@@ -807,7 +878,6 @@ async function loadData(){
     // 선택된 기수 필터링
     const filtered = activeGen==='__all__' ? allRows : allRows.filter(r=>String(r[genCol]||'').trim()===activeGen);
     state = buildState(filtered);
-    // 가장 높은 시즌(마지막 시즌)을 기본 선택
     if(state.seasons && state.seasons.length > 0){
       activeSeason = state.seasons[state.seasons.length - 1];
     } else {
@@ -833,6 +903,14 @@ function toggleQNav(){
 function navScrollTo(id){
   const el = document.getElementById(id);
   if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+  document.getElementById('qnavMenu').classList.remove('open');
+}
+
+
+function toggleQNav(){document.getElementById('qnavMenu').classList.toggle('open');}
+function navScrollTo(id){
+  const el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
   document.getElementById('qnavMenu').classList.remove('open');
 }
 
