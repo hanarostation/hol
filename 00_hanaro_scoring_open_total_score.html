@@ -607,7 +607,7 @@ function renderTier(ranking){
         if(activeSeason) genRows = genRows.filter(r=>String(r[CSEA]||'시즌1')===activeSeason);
         if(!genRows.length) return '';
         const sd = buildSeason(genRows, CN, CC, CCAT, CM, CS, CE);
-        return renderTierGroup(sd.ranking, `${g}기`);
+        return renderTierGroup(sd.ranking, g);
       }).filter(Boolean).join('');
     }
   }
